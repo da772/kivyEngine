@@ -15,10 +15,19 @@ class Beach_Background1(Actor):
         self.beach = Image(source='image/beach.png')
         super(Beach_Background1,self).__init__(scene, priority,**kwargs)
 
+    def __start__(self):
+        self.setSize( (100,100) )
+
+
+    def on_click_down(self, click):
+        pass
+
+    def on_click_move(self, click):
+        self.scene.setCameraPosScaled(click.pos)
 
     def __render__(self):
         self.group.add(Color(1,1,1,1))
-        self.group.add(Rectangle(texture=self.beach.texture,size=self.canvasSize,pos=self.pos))
+        self.group.add(Rectangle(texture=self.beach.texture,size=self.size,pos=self.pos))
         
 
 class Beach_Clouds_Moving(Actor):
@@ -43,39 +52,39 @@ class Beach_Clouds_Moving(Actor):
 
 class WalkingMan(Actor):
     def __init__(self, scene,priority, **kwargs):
-        self.img = Image(source='image/spriteSheet.png')
-        self.texture = None
-        self.map = [ self.img.texture.get_region(0,300,104,149),self.img.texture.get_region(104,300,104,149),
-        self.img.texture.get_region(208,300,104,149),self.img.texture.get_region(313,300,104,149),
-        self.img.texture.get_region(416,300,104,149),self.img.texture.get_region(520,300,104,149)]
-        self.texture = self.map[0]
-        super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 8.0, **kwargs)
+        self.img = Image(source='image/female1.zip')
+        self.img.anim_loop = -1
+        self.img.anim_delay = 1/30
+        self.sold = False
+        self.soldPos = 0
+        super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 30.0, **kwargs)
     
     def __start__(self):
-        self.debug = True
+        #self.debug = True
         self.__set_collision__(True)
-        self.setSize( (self.sizeUnscaled[0]/2,self.sizeUnscaled[1]))
+        self.setSize( (15,60) )
         pass
 
     def __update__(self, dt):
         if not self.touched:
-            if self.posUnscaled[0] < 95 : self.setPos( ( self.posUnscaled[0] + 4  / 3.25, self.posUnscaled[1]) )
-            else : self.setPos( (0, self.posUnscaled[1]) )
+            self.setPos( ( self.posUnscaled[0] + 2  / 3.25, self.posUnscaled[1]) )
+            pass
+
+        if self.sold:
+            self.soldPos += .25
+            if self.soldPos > 20:
+                self.sold = False
+
         pass
 
     def __animate__(self, dt):
         """ *Virtual Function* Override for object logic  """
-        if self.count < len(self.map):
-            self.texture = self.map[self.count]
-        else:
-            self.count = 0
-            self.texture = self.map[self.count]
-       
-        self.count += 1
         pass
 
     def on_collision_start(self,obj):
         #print('Collision started with:',obj)
+        self.soldPos = 0
+        self.sold = True
         pass
         
     def on_collision_end(self,obj):
@@ -83,8 +92,8 @@ class WalkingMan(Actor):
         pass
 
     def __debug_render__(self):
-        #self.group.add(Color(1,0,0,.5))
-        #self.group.add(Rectangle(pos=self.pos,size=self.size))
+        self.group.add(Color(1,0,0,.5))
+        self.group.add(Rectangle(pos=self.pos,size=self.size))
         pass
 
     def on_collision(self, obj):
@@ -97,9 +106,33 @@ class WalkingMan(Actor):
 
     def __render__(self):
         """ *Virtual Function* Override to render custom objects to main canvas  """
+        if self.sold:
+            self.group.add(Color(0,1,0,1))
+            self.group.add(Rectangle(source ='image/dollar.png',
+            pos=self.calcResize( (self.posUnscaled[0] + self.sizeUnscaled[0]/2 - 1.25, self.posUnscaled[1]+self.sizeUnscaled[1]-self.sizeUnscaled[1]/8 + self.soldPos)  )
+            , size= (35,self.size[1]/8) ) )
         self.group.add(Color(1,1,1,1))
-        self.group.add(Rectangle(texture=self.texture,pos=self.pos, size=self.size))
+        self.group.add(Rectangle(texture=self.img.texture,pos=self.pos, size=self.size))
         pass
+
+class DestroyActorBounds(Actor):
+    def __init__(self, scene,priority, **kwargs):
+        super(DestroyActorBounds, self).__init__(scene,priority,**kwargs)
+    
+    def __start__(self):
+        self.setSize( (5, 100))
+        self.setPos( (25, 50 - self.sizeUnscaled[1]/2 ) )
+        self.__set_collision__(True)
+
+    def __on_collision_start__(self, obj):
+        #if issubclass(obj.__class__, WalkingMan) :
+          #  obj.destroy()
+        pass
+            
+
+    def __render__(self):
+        self.group.add(Color(1,0,0,.5))
+        self.group.add(Rectangle(pos=self.pos, size=self.size))
 
 
 class MainMenu_Logo(UI):
@@ -108,7 +141,7 @@ class MainMenu_Logo(UI):
         super(MainMenu_Logo, self).__init__(scene,priority,**kwargs)
 
     def __start__(self):
-        self.debug= True
+        #self.debug= True
         pass
 
     def __debug_render__(self):

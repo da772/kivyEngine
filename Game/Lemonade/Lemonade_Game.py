@@ -3,10 +3,8 @@ from Game.game import Game
 from Core.Rendering.render_kivy import Scene
 from Core.Rendering.render_kivy import SceneManager
 
-from Game.Lemonade.Scripts.GameObjects import WalkingMan
-from Game.Lemonade.Scripts.GameObjects import Beach_Background1
-from Game.Lemonade.Scripts.GameObjects import Beach_Clouds_Moving
-from Game.Lemonade.Scripts.GameObjects import MainMenu_Logo
+
+from Game.Lemonade.Scripts.GameObjects import *
 
 
 class LemonadeGame(Game):
@@ -29,23 +27,33 @@ class LemonadeGame(Game):
         
     def CreateMainMenu(self):
         scene = SceneManager.Create('MainMenu')
+        self.scene1 = scene
         
-        scene.setKeyboardPressUpCallback(lambda a, b, *c : print('key up: ', b))
-        scene.setKeyboardPressDownCallback(lambda a, b, c, d : print('key down: ', b))
+        scene.setKeyboardPressUpCallback(self.on_key_up)
+        scene.setKeyboardPressDownCallback(self.on_key_down)
 
-        logo = scene.CreateActor(MainMenu_Logo,1)
-        logo.textSize = 10  
-        logo.setSize( (40,15) )
-        logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+logo.sizeUnscaled[1]+15) )
+        #logo = scene.CreateActor(MainMenu_Logo,1)
+       # logo.textSize = 10  
+        #logo.setSize( (50,25) )
+        #logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+25) )
 
         #vid = scene.CreateActor(TestVideo, -1)
 
         
-        #scene.CreateActor(WalkingMan)
+        scene.CreateActor(WalkingMan)
         scene.CreateActor(Beach_Background1,99)
         scene.CreateActor(Beach_Clouds_Moving, 98)
+        scene.CreateActor(DestroyActorBounds)
 
         return scene
+
+    def on_key_up(self, a,b,*c):
+        #print(b)
+        pass
+    def on_key_down(self, a, b,c,d):
+        if c[0] == 'y' :
+            print( len(self.scene1.widget_list))
+        pass
 
 
     def update(self, deltaTime):

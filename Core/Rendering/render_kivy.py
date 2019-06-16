@@ -231,6 +231,13 @@ class Scene(Widget):
         self.__camera_change__()
 
 
+    def setCameraPosScaled(self, p):
+        """ set object position relative to window """
+        self.cameraPosUnscaled = (   ( (100*p[0] )/self.size[0] - 50  
+        ,     (100*p[1] )/self.size[1] - 50 )  )
+        self.setCameraPos(self.cameraPosUnscaled)
+
+
 class Actor(Widget):
     """ Abstraction of simple Actor Renderer class
     """
