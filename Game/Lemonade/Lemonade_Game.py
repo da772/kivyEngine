@@ -3,9 +3,7 @@ from Game.game import Game
 from Core.Rendering.render_kivy import Scene
 from Core.Rendering.render_kivy import SceneManager
 
-
 from Game.Lemonade.Scripts.GameObjects import *
-
 
 class LemonadeGame(Game):
 

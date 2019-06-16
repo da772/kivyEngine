@@ -486,6 +486,12 @@ class Actor(Widget):
         _p = ((p[0]/100)*self.canvasSize[0],(p[1]/100)*self.canvasSize [1])
         return _p if not b else min(_p[0],_p[1])
 
+
+    def calcRepos(self, p):
+        """ Determine draw size after window rescale """
+        _p = ((p[0]/100)*self.canvasSize[0]+ self.scene.cameraPos[0],(p[1]/100)*self.canvasSize [1]+ self.scene.cameraPos[1])
+        return _p
+
 class UI(Actor):
     """ Abstract class for creating UI """
     def __init__(self, scene, priority, **kwargs):

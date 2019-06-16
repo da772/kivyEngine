@@ -1,4 +1,4 @@
-from kivy.graphics import Color, Rectangle, Line
+from kivy.graphics import Color, Rectangle, Line, Rotate
 from kivy.uix.image import Image
 from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
@@ -52,11 +52,11 @@ class Beach_Clouds_Moving(Actor):
 
 class WalkingMan(Actor):
     def __init__(self, scene,priority, **kwargs):
-        self.img = Image(source='image/female1.zip')
-        self.img.anim_loop = -1
-        self.img.anim_delay = 1/30
+        self.img = Image(source='image/female1.zip',anim_loop=-1,anim_delay=1/30)
         self.sold = False
         self.soldPos = 0
+        self.img.texture.flip_horizontal()
+        self._texcoords = self.img.texture.tex_coords
         super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 30.0, **kwargs)
     
     def __start__(self):
@@ -67,13 +67,13 @@ class WalkingMan(Actor):
 
     def __update__(self, dt):
         if not self.touched:
-            self.setPos( ( self.posUnscaled[0] + 2  / 3.25, self.posUnscaled[1]) )
+            self.setPos( ( self.posUnscaled[0] - 2  / 3.25, self.posUnscaled[1]) )
             pass
-
         if self.sold:
             self.soldPos += .25
             if self.soldPos > 20:
                 self.sold = False
+
 
         pass
 
@@ -109,10 +109,10 @@ class WalkingMan(Actor):
         if self.sold:
             self.group.add(Color(0,1,0,1))
             self.group.add(Rectangle(source ='image/dollar.png',
-            pos=self.calcResize( (self.posUnscaled[0] + self.sizeUnscaled[0]/2 - 1.25, self.posUnscaled[1]+self.sizeUnscaled[1]-self.sizeUnscaled[1]/8 + self.soldPos)  )
-            , size= (35,self.size[1]/8) ) )
+            pos=self.calcRepos( (self.posUnscaled[0] + self.sizeUnscaled[0]/2 - 1.25, self.posUnscaled[1]+self.sizeUnscaled[1]-self.sizeUnscaled[1]/8 + self.soldPos)  )
+            , size=self.calcResize( ( 3,self.sizeUnscaled[1]/8) ) ) )
         self.group.add(Color(1,1,1,1))
-        self.group.add(Rectangle(texture=self.img.texture,pos=self.pos, size=self.size))
+        self.group.add(Rectangle(texture=self.img.texture,pos=self.pos, size=self.size, tex_coords=self._texcoords))
         pass
 
 class ActorPickUp(Actor):
