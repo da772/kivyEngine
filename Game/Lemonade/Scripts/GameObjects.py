@@ -38,7 +38,7 @@ class Beach_Clouds_Moving(Actor):
         super(Beach_Clouds_Moving,self).__init__(scene, priority, False,True, 0, 30.0,**kwargs)
 
     def __animate__(self, dt):
-        y_incr = Clock.get_boottime() * -0.01
+        y_incr = Clock.get_boottime() * 0.01
         x_scale = self.size[0] / float(self.size[0])
         y_scale = self.size[1] / float(self.size[1])
         self._texcoords = [y_incr, y_scale, y_incr + x_scale,y_scale,y_incr +x_scale,0,y_incr,0]
@@ -115,18 +115,17 @@ class WalkingMan(Actor):
         self.group.add(Rectangle(texture=self.img.texture,pos=self.pos, size=self.size))
         pass
 
-class DestroyActorBounds(Actor):
+class ActorPickUp(Actor):
     def __init__(self, scene,priority, **kwargs):
-        super(DestroyActorBounds, self).__init__(scene,priority,**kwargs)
+        self.on_collide_func = None
+        super(ActorPickUp, self).__init__(scene,priority,**kwargs)
     
     def __start__(self):
         self.setSize( (5, 100))
-        self.setPos( (25, 50 - self.sizeUnscaled[1]/2 ) )
         self.__set_collision__(True)
 
     def __on_collision_start__(self, obj):
-        #if issubclass(obj.__class__, WalkingMan) :
-          #  obj.destroy()
+        if self.on_collide_func : self.on_collide_func(obj)
         pass
             
 

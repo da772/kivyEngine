@@ -43,7 +43,12 @@ class LemonadeGame(Game):
         scene.CreateActor(WalkingMan)
         scene.CreateActor(Beach_Background1,99)
         scene.CreateActor(Beach_Clouds_Moving, 98)
-        scene.CreateActor(DestroyActorBounds)
+        ac1 = scene.CreateActor(ActorPickUp)
+        ac1.on_collide_func = lambda obj : obj.destroy() if issubclass(obj.__class__, Actor) else None
+        ac1.setPos( (98, 50 - ac1.sizeUnscaled[1]/2 ) )
+
+        ac2 = scene.CreateActor(ActorPickUp)
+        ac2.setPos( (35, ac2.getCanvasCenter()[1] ) )
 
         return scene
 
