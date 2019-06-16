@@ -1,13 +1,5 @@
-from kivy.graphics import Color, Rectangle, Line, Rotate
-from kivy.uix.image import Image
-from kivy.uix.image import AsyncImage
-from kivy.uix.label import Label
-from kivy.uix.button import Button
-from kivy.uix.video import Video
-from kivy.clock import Clock
 
-from Core.Rendering.render_kivy import Actor
-from Core.Rendering.render_kivy import UI
+from Core.Rendering.Primitives import *
 
 
 class Beach_Background1(Actor):
@@ -48,34 +40,37 @@ class Beach_Clouds_Moving(Actor):
         self.group.add(Color(1,1,1,.85))
         self.group.add(Rectangle(texture=self.clouds.texture,size=self.canvasSize,pos=self.pos,tex_coords=self._texcoords))
 
-
-
 class WalkingMan(Actor):
     def __init__(self, scene,priority, **kwargs):
         self.img = Image(source='image/female1.zip',anim_loop=-1,anim_delay=1/30)
+        self._texcoords = self.img.texture.tex_coords
         self.sold = False
         self.soldPos = 0
-        self.img.texture.flip_horizontal()
-        self._texcoords = self.img.texture.tex_coords
+        self.speed = 1.5
         super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 30.0, **kwargs)
     
     def __start__(self):
-        #self.debug = True
+        self.debug = True
         self.__set_collision__(True)
         self.setSize( (15,60) )
+        self.setPos( (75,0) )
         pass
 
     def __update__(self, dt):
         if not self.touched:
-            self.setPos( ( self.posUnscaled[0] - 2  / 3.25, self.posUnscaled[1]) )
+            self.setPos( ( self.posUnscaled[0] + self.speed  / 3.25, self.posUnscaled[1]) )
             pass
         if self.sold:
             self.soldPos += .25
             if self.soldPos > 20:
                 self.sold = False
-
-
         pass
+        
+    def __change_dir__(self):
+        self._texcoords = [ 0 if self._texcoords[0] > 0 else 1, self._texcoords[1], 0 if self._texcoords[2] > 0 else 1,
+        self._texcoords[3], 0 if self._texcoords[4] > 0 else 1, self._texcoords[5], 0 if self._texcoords[6] > 0 else 1,
+        self._texcoords[7]]
+        self.speed = -self.speed
 
     def __animate__(self, dt):
         """ *Virtual Function* Override for object logic  """
@@ -112,7 +107,7 @@ class WalkingMan(Actor):
             pos=self.calcRepos( (self.posUnscaled[0] + self.sizeUnscaled[0]/2 - 1.25, self.posUnscaled[1]+self.sizeUnscaled[1]-self.sizeUnscaled[1]/8 + self.soldPos)  )
             , size=self.calcResize( ( 3,self.sizeUnscaled[1]/8) ) ) )
         self.group.add(Color(1,1,1,1))
-        self.group.add(Rectangle(texture=self.img.texture,pos=self.pos, size=self.size, tex_coords=self._texcoords))
+        self.group.add(Rectangle(texture=self.img.texture,pos= self.pos, size=self.size, tex_coords=self._texcoords))
         pass
 
 class ActorPickUp(Actor):

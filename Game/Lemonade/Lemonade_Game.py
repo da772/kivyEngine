@@ -1,7 +1,7 @@
 from Game.game import Game
 
-from Core.Rendering.render_kivy import Scene
-from Core.Rendering.render_kivy import SceneManager
+from Core.Rendering.Primitives import Scene
+from Core.Rendering.Primitives import SceneManager
 
 from Game.Lemonade.Scripts.GameObjects import *
 
@@ -13,9 +13,11 @@ class LemonadeGame(Game):
         self.y = 0
         self.title = 'Lemonade'
         self.icon = 'image/icon.ico'
+        self.maxfps = 244
         self.bDraw = False
         self.scene1 = None
         self.scene2 = None
+       
 
     def start(self):
         print('Starting...')
@@ -31,7 +33,7 @@ class LemonadeGame(Game):
         scene.setKeyboardPressDownCallback(self.on_key_down)
 
         #logo = scene.CreateActor(MainMenu_Logo,1)
-       # logo.textSize = 10  
+        #logo.textSize = 10  
         #logo.setSize( (50,25) )
         #logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+25) )
 
@@ -42,11 +44,12 @@ class LemonadeGame(Game):
         scene.CreateActor(Beach_Background1,99)
         scene.CreateActor(Beach_Clouds_Moving, 98)
         ac1 = scene.CreateActor(ActorPickUp)
-        ac1.on_collide_func = lambda obj : obj.destroy() if issubclass(obj.__class__, Actor) else None
+        ac1.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, Actor) else None
         ac1.setPos( (98, 50 - ac1.sizeUnscaled[1]/2 ) )
 
         ac2 = scene.CreateActor(ActorPickUp)
-        ac2.setPos( (35, ac2.getCanvasCenter()[1] ) )
+        ac2.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, Actor) else None
+        ac2.setPos( (0, 0 ) )
 
         return scene
 

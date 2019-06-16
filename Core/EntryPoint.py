@@ -3,8 +3,8 @@ from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.config import Config
 
-from Core.Rendering.render_kivy import Scene
-from Core.Rendering.render_kivy import SceneManager
+from Core.Rendering.Primitives import Scene
+from Core.Rendering.Primitives import SceneManager
 
 from Core.Event.EventHandler import EventHandler
 from Core.Event.EventHandler import WindowEventHandler
@@ -20,7 +20,7 @@ class Engine(App):
     
      """
     def __init__(self, game, **kwargs):
-        KIVY_IMAGE='sdl2,pil'
+        Config.set('graphics', 'maxfps', '0')
         Config.set('graphics', 'width', '1280')
         Config.set('graphics', 'height', '720')
         Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -45,6 +45,7 @@ class Main(Widget):
         self.game = game
         self.game_update = game.update
         self.scene = ''
+        self.maxfps = game.maxfps
         game.start()
         WindowEventHandler.window_close_request_callback.append(self.window_request_close)
         Clock.max_iteration = 60

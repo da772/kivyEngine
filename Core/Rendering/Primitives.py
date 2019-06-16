@@ -3,11 +3,20 @@ from kivy.uix.widget import Widget
 from kivy.graphics.instructions import InstructionGroup
 from kivy.clock import Clock
 
+from kivy.graphics import Color as _Color
+from kivy.graphics import Rectangle as _Rectangle
+from kivy.uix.image import Image as _Image
+from kivy.uix.image import AsyncImage as _AsycnImage
+from kivy.uix.label import Label as _Label
+from kivy.uix.button import Button as _Button
+from kivy.clock import Clock
+
 from Core.Event.EventHandler import EventHandler
 from Core.Event.EventHandler import WindowEventHandler
 from Core.Event.EventHandler import KeyboardEventHandler
 
 from queue import PriorityQueue
+
 
 class SceneManager():
     """ Manage Scenes this manager allows for multiple \"Levels\" in a single game which can be swapped """
@@ -81,6 +90,27 @@ class SceneManager():
             SceneManager.SceneDict.pop(name, None)           
             return SceneManager.SceneDict[newScene]
 
+""" Refactor kivy Primitives """
+class Color(_Color):
+    def __init___(self,**kwargs):
+        super(Color, self).__init__(**kwargs)
+
+class Image(_Image):
+    def __init___(self,**kwargs):
+        super(Image, self).__init__(**kwargs)
+
+class Rectangle(_Rectangle):
+    def __init___(self,**kwargs):
+        super(Rectangle, self).__init__(**kwargs)
+
+class Button(_Button):
+    def __init___(self,**kwargs):
+        super(Button, self).__init__(**kwargs)
+
+class Label(_Label):
+    def __init___(self,**kwargs):
+        super(Label, self).__init__(**kwargs)
+        
 
 class Scene(Widget):
     """ Contain display actors and ui acts as a Level for game
@@ -99,6 +129,7 @@ class Scene(Widget):
             self.name = name
             self.cameraPos = (0,0)
             self.collisionThread = None
+            self.renderThread = None
             self.cameraPosUnscaled = (0,0)
             WindowEventHandler.window_resize_callback.append(self.resizeScene_callback)
             self.size = (Window.size[0], Window.size[1])
@@ -106,7 +137,6 @@ class Scene(Widget):
             self.kUpFunc = None
             self.kDownFunc = None
             self.setCameraPos((0,0)) 
-
 
     def setKeyboardPressUpCallback(self, func):
         """ Function to pass keyboard press up callback to
@@ -130,15 +160,20 @@ class Scene(Widget):
 
     def setActive_event(self, b):
         """ on scene set Active  """
+        from Core.EntryPoint import Main
         for x in self.on_setActive: x(b)
         if b:
             if not self.collisionThread : self.collisionThread = Clock.schedule_interval(self.__check_collision__, 1.0/30)
+            if not self.renderThread : self.renderThread = Clock.schedule_interval(self.__render__, 0 if Main.instance.maxfps is 0 else 1/Main.instance.maxfps )
             if self.kUpFunc and self.kUpFunc not in KeyboardEventHandler.keyboard_press_up_callback: KeyboardEventHandler.keyboard_press_up_callback.append(self.kUpFunc)
             if self.kDownFunc and self.kDownFunc not in KeyboardEventHandler.keyboard_press_down_callback : KeyboardEventHandler.keyboard_press_down_callback.append(self.kDownFunc)
         else:
             if self.collisionThread : 
                 Clock.unschedule(self.collisionThread)
                 self.collisionThread = None
+            if self.renderThread : 
+                Clock.unschedule(self.renderThread)
+                self.renderThread = None
             if self.kUpFunc and self.kUpFunc in KeyboardEventHandler.keyboard_press_up_callback: KeyboardEventHandler.keyboard_press_up_callback.remove(self.kUpFunc)
             if self.kDownFunc and self.kDownFunc in KeyboardEventHandler.keyboard_press_down_callback : KeyboardEventHandler.keyboard_press_down_callback.remove(self.kDownFunc)
 
@@ -192,6 +227,16 @@ class Scene(Widget):
         self.clear_widgets()
         while not self.widget_draw.empty():
             self.add_widget(self.widget_draw.get().group)
+
+        
+    def __render__(self, dt):
+        for x in self.widget_list.values() : self.widget_draw.put(x)
+        self.clear_widgets()
+        while not self.widget_draw.empty():
+            w = self.widget_draw.get()
+            w.group.__main_render__()
+            self.add_widget(w.group)
+
 
     def CreateActor(self, t, p=0):
         """ Create actor in current scene
@@ -329,7 +374,8 @@ class Actor(Widget):
     
     def __pass_animate__(self, dt):
         """ pass animation to render """
-        self.__main_render__()
+        #self.__main_render__()
+        pass
 
     def on_touch_down(self, touch):
         """ called when clicked down on self """
@@ -426,7 +472,7 @@ class Actor(Widget):
 
     def __on_resize__(self):
         """ Called when size of self or window changes """
-        self.__main_render__()
+        #self.__main_render__()
         pass
 
     def __set_intervals__(self, b):
@@ -500,7 +546,8 @@ class UI(Actor):
         super(UI, self).__init__(scene, priority,**kwargs)
 
     def __on_resize__(self):
-        self.__main_render__()
+        #self.__main_render__()
+        pass
         
     def __main_render__(self):
         while len(self.ui_widget):
