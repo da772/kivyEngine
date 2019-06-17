@@ -201,8 +201,8 @@ class Scene(Widget):
         if w not in self.collision_widget_list:
             self.collision_widget_list.append(w)
 
-    def __remove_collision_(self, w):
-        if w in self.collision+_proxy_ref:
+    def __remove_collision__(self, w):
+        if w in self.collision_widget_list:
             self.collision_widget_list.remove(w)
 
     def isActive(self):
@@ -230,13 +230,8 @@ class Scene(Widget):
 
         
     def __render__(self, dt):
-        for x in self.widget_list.values() : self.widget_draw.put(x)
-        self.clear_widgets()
-        while not self.widget_draw.empty():
-            w = self.widget_draw.get()
-            w.group.__main_render__()
-            self.add_widget(w.group)
-
+        for x in self.widget_list.values() : x.group.__main_render__()
+        pass
 
     def CreateActor(self, t, p=0):
         """ Create actor in current scene
@@ -274,7 +269,6 @@ class Scene(Widget):
         self.cameraPosUnscaled = p
         self.cameraPos = ((p[0]/100)*self.size[0],(p[1]/100)*self.size[1])
         self.__camera_change__()
-
 
     def setCameraPosScaled(self, p):
         """ set object position relative to window """
@@ -434,6 +428,7 @@ class Actor(Widget):
         """ Send drawing instructions to main canvas """
         self.canvas.clear()
         self.canvas.add(self.group)
+        pass
               
     def __render__(self):
         """ *Virtual Function* Override to render custom objects to main canvas  """
@@ -445,7 +440,7 @@ class Actor(Widget):
              self.scene.__add_collision__(self)
              self.collision = True
         else :
-             self.scene.__remove_collision_(self)
+             self.scene.__remove_collision__(self)
              self.collision = False
         
     def __end__(self):
@@ -524,7 +519,7 @@ class Actor(Widget):
                  ( size relative to p/100 * window size )
         """
         self.sizeUnscaled = p
-        self.size = ( (p[0]/100) *self.canvasSize [0], (p[1]/100) *self.canvasSize [1])
+        self.size = ( (p[0]/100) *self.canvasSize [0], (p[1]/100) *self.canvasSize [1])       
         self.setPos(self.posUnscaled)
 
     def calcResize(self, p, b=False):

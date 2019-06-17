@@ -1,6 +1,5 @@
-
 from Core.Rendering.Primitives import *
-
+import numpy as np
 
 class Beach_Background1(Actor):
     def __init__(self, scene,priority, **kwargs):
@@ -9,6 +8,7 @@ class Beach_Background1(Actor):
 
     def __start__(self):
         self.setSize( (100,100) )
+        self.setPos( (0,0) )
 
 
     def on_click_down(self, click):
@@ -29,6 +29,11 @@ class Beach_Clouds_Moving(Actor):
         self._texcoords = self.clouds.texture.tex_coords
         super(Beach_Clouds_Moving,self).__init__(scene, priority, False,True, 0, 30.0,**kwargs)
 
+    def __start__(self):
+        self.setPos( (0,0) )
+        self.setSize( (100,100) )
+        pass
+
     def __animate__(self, dt):
         y_incr = Clock.get_boottime() * 0.01
         x_scale = self.size[0] / float(self.size[0])
@@ -47,23 +52,26 @@ class WalkingMan(Actor):
         self.sold = False
         self.soldPos = 0
         self.speed = 1.5
+        self.sizeX = 15
+        self.sizeY = 60
         super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 30.0, **kwargs)
     
     def __start__(self):
-        self.debug = True
+        self.debug = False
         self.__set_collision__(True)
-        self.setSize( (15,60) )
         self.setPos( (75,0) )
+        self.setSize( (15,60) )
         pass
 
     def __update__(self, dt):
         if not self.touched:
-            self.setPos( ( self.posUnscaled[0] + self.speed  / 3.25, self.posUnscaled[1]) )
+            self.setPos( ( self.posUnscaled[0] + self.speed  / 3.25 , self.posUnscaled[1]) )
             pass
         if self.sold:
             self.soldPos += .25
             if self.soldPos > 20:
                 self.sold = False
+        self.setSize(  ( float(np.abs(self.posUnscaled[1]-100)) /100 * self.sizeX, float(np.abs(self.posUnscaled[1]-100) )/100 * self.sizeY     )  ) 
         pass
         
     def __change_dir__(self):

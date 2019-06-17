@@ -5,6 +5,8 @@ from Core.Rendering.Primitives import SceneManager
 
 from Game.Lemonade.Scripts.GameObjects import *
 
+from random import randrange
+
 class LemonadeGame(Game):
 
     def __init__(self,**kwargs):
@@ -13,7 +15,7 @@ class LemonadeGame(Game):
         self.y = 0
         self.title = 'Lemonade'
         self.icon = 'image/icon.ico'
-        self.maxfps = 244
+        self.maxfps = 0
         self.bDraw = False
         self.scene1 = None
         self.scene2 = None
@@ -24,7 +26,6 @@ class LemonadeGame(Game):
         self.scene1 = self.CreateMainMenu()
         self.scene2 = SceneManager.Create('Test', False)
 
-        
     def CreateMainMenu(self):
         scene = SceneManager.Create('MainMenu')
         self.scene1 = scene
@@ -32,15 +33,21 @@ class LemonadeGame(Game):
         scene.setKeyboardPressUpCallback(self.on_key_up)
         scene.setKeyboardPressDownCallback(self.on_key_down)
 
-        #logo = scene.CreateActor(MainMenu_Logo,1)
-        #logo.textSize = 10  
-        #logo.setSize( (50,25) )
-        #logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+25) )
+        logo = scene.CreateActor(MainMenu_Logo,1)
+        logo.textSize = 10  
+        logo.setSize( (50,25) )
+        logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+25) )
 
         #vid = scene.CreateActor(TestVideo, -1)
 
         
-        scene.CreateActor(WalkingMan)
+        for x in range(20) :
+            pos = ( randrange(15, 99, 1), randrange(0, 25, 1))
+            speed = randrange(1, 2) + randrange(1,100)/100
+            act = scene.CreateActor(WalkingMan, pos[1])
+            act.speed = speed
+            act.setPos(pos)
+
         scene.CreateActor(Beach_Background1,99)
         scene.CreateActor(Beach_Clouds_Moving, 98)
         ac1 = scene.CreateActor(ActorPickUp)
