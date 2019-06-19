@@ -1,9 +1,10 @@
 from Core.Rendering.Primitives import *
+from Game.game import Game
 import numpy as np
 
 class Beach_Background1(Actor):
     def __init__(self, scene,priority, **kwargs):
-        self.beach = Image(source='image/beach.png')
+        self.beach = Game.instance.sprites['beach1']
         super(Beach_Background1,self).__init__(scene, priority,**kwargs)
 
     def __start__(self):
@@ -24,7 +25,7 @@ class Beach_Background1(Actor):
 
 class Beach_Clouds_Moving(Actor):
     def __init__(self, scene, priority, **kwargs):
-        self.clouds = Image(source='image/cloud.png')
+        self.clouds = Game.instance.sprites['cloud1']
         self.clouds.texture.wrap = 'repeat'
         self._texcoords = self.clouds.texture.tex_coords
         super(Beach_Clouds_Moving,self).__init__(scene, priority, False,True, 0, 30.0,**kwargs)
@@ -47,7 +48,10 @@ class Beach_Clouds_Moving(Actor):
 
 class WalkingMan(Actor):
     def __init__(self, scene,priority, **kwargs):
-        self.img = Image(source='image/female1.zip',anim_loop=-1,anim_delay=1/30)
+        self.img = Game.instance.sprites['man1']
+        self.img.anim_loop=-1
+        self.img.anim_delay=1/30
+        #self.img1 = Image(source='image/man1cup.zip',anim_loop=-1,anim_delay=1/30)
         self._texcoords = self.img.texture.tex_coords
         self.sold = False
         self.soldPos = 0
@@ -57,7 +61,7 @@ class WalkingMan(Actor):
         super(WalkingMan,self).__init__(scene,priority, True, True, 30.0, 30.0, **kwargs)
     
     def __start__(self):
-        self.debug = False
+        self.debug = True
         self.__set_collision__(True)
         self.setPos( (75,0) )
         self.setSize( (15,60) )
@@ -87,6 +91,9 @@ class WalkingMan(Actor):
     def on_collision_start(self,obj):
         #print('Collision started with:',obj)
         self.soldPos = 0
+        #tmp = self.img
+        #self.img = self.img1
+        #self.img1 = tmp
         self.sold = True
         pass
         
@@ -111,7 +118,7 @@ class WalkingMan(Actor):
         """ *Virtual Function* Override to render custom objects to main canvas  """
         if self.sold:
             self.group.add(Color(0,1,0,1))
-            self.group.add(Rectangle(source ='image/dollar.png',
+            self.group.add(Rectangle(texture=Game.instance.sprites['dollarEffect'].texture,
             pos=self.calcRepos( (self.posUnscaled[0] + self.sizeUnscaled[0]/2 - 1.25, self.posUnscaled[1]+self.sizeUnscaled[1]-self.sizeUnscaled[1]/8 + self.soldPos)  )
             , size=self.calcResize( ( 3,self.sizeUnscaled[1]/8) ) ) )
         self.group.add(Color(1,1,1,1))
@@ -131,7 +138,6 @@ class ActorPickUp(Actor):
         if self.on_collide_func : self.on_collide_func(obj)
         pass
             
-
     def __render__(self):
         self.group.add(Color(1,0,0,.5))
         self.group.add(Rectangle(pos=self.pos, size=self.size))
@@ -143,18 +149,20 @@ class MainMenu_Logo(UI):
         super(MainMenu_Logo, self).__init__(scene,priority,**kwargs)
 
     def __start__(self):
-        #self.debug= True
+        self.debug= False
+       
         pass
 
     def __debug_render__(self):
-        self.create_widget( 'Image', Image, 1000,pos=self.pos, size=self.size)
+        
+        pass
 
     def __render__(self):
         self.create_widget( 'Lemonade', Label, 0, text='Lemonade Stand', pos=self.pos, size=self.size, 
-        text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
-        font_size=self.calcResize( (self.textSize, self.textSize), True), halign="center", valign="middle",on_press=lambda a : print(), color=(0,0,0,1),
-        font_name='font/Lemonade.otf', 
-        )
+                text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
+                font_size=self.calcResize( (self.textSize, self.textSize), True), halign="center", valign="middle",on_press=lambda a : print(), color=(0,0,0,1),
+                font_name='font/Lemonade.otf', 
+                )
         pass
 
 class TestButton1(UI):

@@ -12,22 +12,40 @@ class LemonadeGame(Game):
     def __init__(self,**kwargs):
         super(LemonadeGame, self).__init__(**kwargs)
         self.x = 0
+        self.spriteCount = 5
+        self.spriteLoadedCount = 0
+        self.sprites = {}
+        self.spritesLoaded = False
         self.y = 0
         self.title = 'Lemonade'
         self.icon = 'image/icon.ico'
         self.maxfps = 0
         self.bDraw = False
-        self.scene1 = None
         self.scene2 = None
+        self.act = None
        
-
     def start(self):
         print('Starting...')
-        self.scene1 = self.CreateMainMenu()
+        self.loadSprites()
+        self.CreateMainMenu()
         self.scene2 = SceneManager.Create('Test', False)
 
+    def loadSprites(self):
+        self.sprites['dollarEffect'] = AsyncImage(source ='Resources/Lemonade/effects/dollar.png',on_load=self.spriteLoaded)
+        self.sprites['man1'] = AsyncImage(source='Resources/Lemonade/characters/man1.zip',on_load=self.spriteLoaded)
+        self.sprites['man1cup'] = AsyncImage(source='Resources/Lemonade/characters/man1cup.zip',on_load=self.spriteLoaded)
+        self.sprites['cloud1'] = AsyncImage(source='Resources/Lemonade/main_menu/cloud1.png',on_load=self.spriteLoaded)
+        self.sprites['beach1'] = AsyncImage(source='Resources/Lemonade/main_menu/beach1.png',on_load=self.spriteLoaded)
+        pass
+
+    def spriteLoaded(self, a):
+        self.spriteLoadedCount += 1
+        if (self.spriteLoadedCount >= self.spriteCount):
+            print('All sprites loaded')
+            self.spritesLoaded = True
+
     def CreateMainMenu(self):
-        scene = SceneManager.Create('MainMenu')
+        scene = SceneManager.Create('MainMenu', True)
         self.scene1 = scene
         
         scene.setKeyboardPressUpCallback(self.on_key_up)
@@ -37,27 +55,25 @@ class LemonadeGame(Game):
         logo.textSize = 10  
         logo.setSize( (50,25) )
         logo.setPos( (logo.getCanvasCenter()[0], logo.getCanvasCenter()[1]+25) )
-
-        #vid = scene.CreateActor(TestVideo, -1)
-
-        
-        for x in range(20) :
+        scene.CreateActor(Beach_Background1,99)
+        scene.CreateActor(Beach_Clouds_Moving, 98)
+        """
+        for x in range(1) :
             pos = ( randrange(15, 99, 1), randrange(0, 25, 1))
             speed = randrange(1, 2) + randrange(1,100)/100
             act = scene.CreateActor(WalkingMan, pos[1])
             act.speed = speed
             act.setPos(pos)
+            self.act = act
+            pass
 
-        scene.CreateActor(Beach_Background1,99)
-        scene.CreateActor(Beach_Clouds_Moving, 98)
         ac1 = scene.CreateActor(ActorPickUp)
         ac1.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, Actor) else None
         ac1.setPos( (98, 50 - ac1.sizeUnscaled[1]/2 ) )
 
         ac2 = scene.CreateActor(ActorPickUp)
         ac2.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, Actor) else None
-        ac2.setPos( (0, 0 ) )
-
+        ac2.setPos( (0, 0 ) )"""
         return scene
 
     def on_key_up(self, a,b,*c):
@@ -65,9 +81,25 @@ class LemonadeGame(Game):
         pass
     def on_key_down(self, a, b,c,d):
         if c[0] == 'y' :
-            print( len(self.scene1.widget_list))
-        pass
+            scene = SceneManager.Get('MainMenu')
 
+            for x in range(1) :
+                pos = ( randrange(15, 99, 1), randrange(0, 25, 1))
+                speed = randrange(1, 2) + randrange(1,100)/100
+                act = scene.CreateActor(WalkingMan, pos[1])
+                act.speed = speed
+                act.setPos(pos)
+                self.act = act
+                pass
+
+            ac1 = scene.CreateActor(ActorPickUp)
+            ac1.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, WalkingMan) else None
+            ac1.setPos( (98, 50 - ac1.sizeUnscaled[1]/2 ) )
+
+            ac2 = scene.CreateActor(ActorPickUp)
+            ac2.on_collide_func = lambda obj : obj.__change_dir__() if issubclass(obj.__class__, WalkingMan) else None
+            ac2.setPos( (0, 0 ) )
+        pass
 
     def update(self, deltaTime):
         self.x += 1

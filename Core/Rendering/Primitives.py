@@ -6,7 +6,7 @@ from kivy.clock import Clock
 from kivy.graphics import Color as _Color
 from kivy.graphics import Rectangle as _Rectangle
 from kivy.uix.image import Image as _Image
-from kivy.uix.image import AsyncImage as _AsycnImage
+from kivy.uix.image import AsyncImage as _AsyncImage
 from kivy.uix.label import Label as _Label
 from kivy.uix.button import Button as _Button
 from kivy.clock import Clock
@@ -99,6 +99,10 @@ class Image(_Image):
     def __init___(self,**kwargs):
         super(Image, self).__init__(**kwargs)
 
+class AsyncImage(_AsyncImage):
+    def __init___(self,**kwargs):
+        super(AsyncImage, self).__init__(**kwargs)
+
 class Rectangle(_Rectangle):
     def __init___(self,**kwargs):
         super(Rectangle, self).__init__(**kwargs)
@@ -110,7 +114,7 @@ class Button(_Button):
 class Label(_Label):
     def __init___(self,**kwargs):
         super(Label, self).__init__(**kwargs)
-        
+     
 
 class Scene(Widget):
     """ Contain display actors and ui acts as a Level for game
@@ -196,6 +200,7 @@ class Scene(Widget):
                         self.collision_list.update( {s : (x,y) } )
                         x.__on_collision_start__(y)
                     x.__on_collision__(y)
+        pass
 
     def __add_collision__(self, w):
         if w not in self.collision_widget_list:
@@ -230,7 +235,8 @@ class Scene(Widget):
 
         
     def __render__(self, dt):
-        for x in self.widget_list.values() : x.group.__main_render__()
+        v = self.widget_list.values()
+        for x in  v : x.group.__main_render__()
         pass
 
     def CreateActor(self, t, p=0):
@@ -537,7 +543,7 @@ class UI(Actor):
     """ Abstract class for creating UI """
     def __init__(self, scene, priority, **kwargs):
         self.widget_draw = PriorityQueue()
-        self.ui_widget = []
+        self.ui_widget = {}
         super(UI, self).__init__(scene, priority,**kwargs)
 
     def __on_resize__(self):
@@ -545,14 +551,13 @@ class UI(Actor):
         pass
         
     def __main_render__(self):
-        while len(self.ui_widget):
-            self.remove_widget(self.ui_widget.pop())
         if not self.__destroy__ and self.debug : self.__debug_render__()
         if not self.__destroy__: self.__render__()
         self.__pass_render__()
 
     def __pass_render__(self):
-       self.__update_widgets__()
+        self.__update_widgets__()
+        pass
 
     def on_touch_down(self, touch):
         return super(Actor, self).on_touch_down(touch)
@@ -570,7 +575,7 @@ class UI(Actor):
             a = type(w.group['class'].__class__.__name__, 
             (w.group['class'],), {})(**w.group['kwargs'])
             self.add_widget(a)
-            self.ui_widget.append(a)
+            self.ui_widget[w.group['name']] = a
 
     def setPos(self, p):
         """ Set object position 
@@ -595,7 +600,13 @@ class UI(Actor):
             **kwargs (**kwargs) : optional arguments
         
         """
-        self.widget_draw.put(GroupInstructionQueue(priority, {'class':_type, 'kwargs': kwargs, 'name': name}))
+        k = self.ui_widget.keys()
+        if name not in k:
+            self.widget_draw.put(GroupInstructionQueue(priority, {'class':_type, 'kwargs': kwargs, 'name': name}))
+        else:
+            for k,v in kwargs.items():
+                setattr(self.ui_widget[name], k, v)
+            del kwargs
 
         
         
