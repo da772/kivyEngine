@@ -15,6 +15,8 @@ from Core.Event.EventHandler import EventHandler
 from Core.Event.EventHandler import WindowEventHandler
 from Core.Event.EventHandler import KeyboardEventHandler
 
+from time import time
+
 from queue import PriorityQueue
 
 
@@ -99,9 +101,15 @@ class Image(_Image):
     def __init___(self,**kwargs):
         super(Image, self).__init__(**kwargs)
 
+    def GetFrames(self):
+        return self._coreimage.image.textures
+
 class AsyncImage(_AsyncImage):
     def __init___(self,**kwargs):
         super(AsyncImage, self).__init__(**kwargs)
+
+    def GetFrames(self):
+        return self._coreimage.image.textures
 
 class Rectangle(_Rectangle):
     def __init___(self,**kwargs):
@@ -131,6 +139,9 @@ class Scene(Widget):
             self.collision_list = {}
             self.resize_event = []
             self.name = name
+            self.lastTime = 0
+            self.frameCounter = 0
+            self.fps = 0
             self.cameraPos = (0,0)
             self.collisionThread = None
             self.renderThread = None
@@ -237,6 +248,12 @@ class Scene(Widget):
     def __render__(self, dt):
         v = self.widget_list.values()
         for x in  v : x.group.__main_render__()
+        t = time()
+        if t -self.lastTime >= 1.0 or self.lastTime is 0:
+            self.fps = self.frameCounter
+            self.frameCounter = 0
+            self.lastTime = t
+        else: self.frameCounter += 1
         pass
 
     def CreateActor(self, t, p=0):
@@ -290,6 +307,7 @@ class Actor(Widget):
         """ Actor constructor """
         super(Actor, self).__init__(**kwargs)
         self.size = (0,0)
+        self.frame_counter = 0
         self.collision = False
         self.debug = False
         self.sizeUnscaled = (25, 50)
@@ -300,6 +318,7 @@ class Actor(Widget):
         self.updateInterval = updateInt
         self.animateInterval = animateInt
         self.pos = (0,0)
+        self.frame_counter_offset = 0
         self.posUnscaled = (0,0)
         self.scene = scene
         self.priority = priority
@@ -374,7 +393,7 @@ class Actor(Widget):
     
     def __pass_animate__(self, dt):
         """ pass animation to render """
-        #self.__main_render__()
+        self.frame_counter = (self.frame_counter if self.frame_counter < self.animateInterval + self.frame_counter_offset else -1 ) + 1
         pass
 
     def on_touch_down(self, touch):
