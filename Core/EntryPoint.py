@@ -19,7 +19,10 @@ class Engine(App):
         game (Game) : game class to run
     
      """
+    instance=  None
+
     def __init__(self, game, **kwargs):
+        Engine.instance = self
         Config.set('graphics', 'maxfps', '0')
         Config.set('graphics', 'width', '1280')
         Config.set('graphics', 'height', '720')

@@ -11,6 +11,8 @@ from kivy.uix.label import Label as _Label
 from kivy.uix.button import Button as _Button
 from kivy.clock import Clock
 
+from kivy.core.audio import SoundLoader as _SoundLoader
+
 from Core.Event.EventHandler import EventHandler
 from Core.Event.EventHandler import WindowEventHandler
 from Core.Event.EventHandler import KeyboardEventHandler
@@ -18,6 +20,7 @@ from Core.Event.EventHandler import KeyboardEventHandler
 from time import time
 
 from queue import PriorityQueue
+
 
 
 class SceneManager():
@@ -64,8 +67,8 @@ class SceneManager():
         s = Scene(name)
         SceneManager.SceneDict[name] = s
         if active : SceneManager.SetActive(name)
-        print('Creating scene: ', name)
         return s
+
 
     @staticmethod 
     def Destroy(name, newScene=''):
@@ -77,20 +80,25 @@ class SceneManager():
                 after destroying leave blank to replace with new
                 scene
         """
+        import gc
         from Core.EntryPoint import Main
         if newScene is '':
-            SceneManager.SceneDict[name].clear_widgets()
             Main.instance.remove_widget(SceneManager.SceneDict[name])
             SceneManager.SceneDict[name].setActive_event(False)
-            SceneManager.SceneDict.pop(name, None)
-            return None
+            SceneManager.SceneDict[name].destroy()
+            SceneManager.SceneDict.pop(name)  
+            gc.collect()
         else:
             SceneManager.SetActive(newScene)
-            SceneManager.SceneDict[name].clear_widgets()
             Main.instance.remove_widget(SceneManager.SceneDict[name])
             SceneManager.SceneDict[name].setActive_event(False)
-            SceneManager.SceneDict.pop(name, None)           
+            SceneManager.SceneDict[name].destroy()
+            SceneManager.SceneDict.pop(name)
+            gc.collect()
             return SceneManager.SceneDict[newScene]
+
+def namestr(obj, namespace):
+    return [name for name in namespace if namespace[name] is obj]
 
 """ Refactor kivy Primitives """
 class Color(_Color):
@@ -122,6 +130,11 @@ class Button(_Button):
 class Label(_Label):
     def __init___(self,**kwargs):
         super(Label, self).__init__(**kwargs)
+
+        SoundLoader
+class SoundLoader(_SoundLoader):
+    def __init___(self,**kwargs):
+        super(SoundLoader, self).__init__(**kwargs)
      
 
 class Scene(Widget):
@@ -133,6 +146,7 @@ class Scene(Widget):
       """
     def __init__(self, name,**kwargs):
             super(Scene, self).__init__(**kwargs)
+            WindowEventHandler.window_resize_callback.append(self.resizeScene_callback)
             self.widget_draw = PriorityQueue()
             self.widget_list = {}
             self.collision_widget_list = []
@@ -146,7 +160,6 @@ class Scene(Widget):
             self.collisionThread = None
             self.renderThread = None
             self.cameraPosUnscaled = (0,0)
-            WindowEventHandler.window_resize_callback.append(self.resizeScene_callback)
             self.size = (Window.size[0], Window.size[1])
             self.on_setActive = []
             self.kUpFunc = None
@@ -180,8 +193,10 @@ class Scene(Widget):
         if b:
             if not self.collisionThread : self.collisionThread = Clock.schedule_interval(self.__check_collision__, 1.0/30)
             if not self.renderThread : self.renderThread = Clock.schedule_interval(self.__render__, 0 if Main.instance.maxfps is 0 else 1/Main.instance.maxfps )
-            if self.kUpFunc and self.kUpFunc not in KeyboardEventHandler.keyboard_press_up_callback: KeyboardEventHandler.keyboard_press_up_callback.append(self.kUpFunc)
-            if self.kDownFunc and self.kDownFunc not in KeyboardEventHandler.keyboard_press_down_callback : KeyboardEventHandler.keyboard_press_down_callback.append(self.kDownFunc)
+            if self.kUpFunc is not None and self.kUpFunc not in KeyboardEventHandler.keyboard_press_up_callback: 
+                KeyboardEventHandler.keyboard_press_up_callback.append(self.kUpFunc)
+            if self.kDownFunc is not None and self.kDownFunc not in KeyboardEventHandler.keyboard_press_down_callback :
+                KeyboardEventHandler.keyboard_press_down_callback.append(self.kDownFunc)
         else:
             if self.collisionThread : 
                 Clock.unschedule(self.collisionThread)
@@ -189,12 +204,14 @@ class Scene(Widget):
             if self.renderThread : 
                 Clock.unschedule(self.renderThread)
                 self.renderThread = None
-            if self.kUpFunc and self.kUpFunc in KeyboardEventHandler.keyboard_press_up_callback: KeyboardEventHandler.keyboard_press_up_callback.remove(self.kUpFunc)
-            if self.kDownFunc and self.kDownFunc in KeyboardEventHandler.keyboard_press_down_callback : KeyboardEventHandler.keyboard_press_down_callback.remove(self.kDownFunc)
+            if self.kUpFunc in KeyboardEventHandler.keyboard_press_up_callback: 
+                KeyboardEventHandler.keyboard_press_up_callback.remove(self.kUpFunc)
+            if self.kDownFunc in KeyboardEventHandler.keyboard_press_down_callback :
+                KeyboardEventHandler.keyboard_press_down_callback.remove(self.kDownFunc)
 
     def __check_collision__(self, dt):
+        """ check collision of scene actors call collision start, on colliding, and collision end """
         to_remove = []
-
         for x in self.collision_list.keys():
             if not self.collision_list[x][0].collide_widget(self.collision_list[x][1]):
                 self.collision_list[x][0].__on_collision_end__(self.collision_list[x][1])
@@ -213,11 +230,24 @@ class Scene(Widget):
                     x.__on_collision__(y)
         pass
 
+    def Clear(self):
+        import gc
+        v = list(self.widget_list.values())
+        while len(v):
+            w = v.pop().group
+            w.destroy()
+        self.collision_list.clear()
+        self.collision_widget_list.clear()
+        gc.collect()
+        pass
+
     def __add_collision__(self, w):
+        """ add actor to collision group """
         if w not in self.collision_widget_list:
             self.collision_widget_list.append(w)
 
     def __remove_collision__(self, w):
+        """ remove actor from collision group """
         if w in self.collision_widget_list:
             self.collision_widget_list.remove(w)
 
@@ -236,7 +266,7 @@ class Scene(Widget):
             self.add_widget(w.group)
 
     def __remove_widget__(self, w):
-        """ remove widget to scene using priority queue """
+        """ remove widget from scene  """
         self.widget_list.pop(w)
         if w.collision and w in self.collision_widget_list: self.collision_widget_list.remove(w)
         for x in self.widget_list.values() : self.widget_draw.put(x)
@@ -244,8 +274,8 @@ class Scene(Widget):
         while not self.widget_draw.empty():
             self.add_widget(self.widget_draw.get().group)
 
-        
     def __render__(self, dt):
+        """ render all actors in scene """
         v = self.widget_list.values()
         for x in  v : x.group.__main_render__()
         t = time()
@@ -256,7 +286,23 @@ class Scene(Widget):
         else: self.frameCounter += 1
         pass
 
-    def CreateActor(self, t, p=0):
+    def destroy(self):
+        self.clear_widgets()
+        v = list(self.widget_list.values())
+        while len(v):
+            w = v.pop().group
+            w.destroy()
+        WindowEventHandler.window_resize_callback.remove(self.resizeScene_callback)
+        del self.widget_draw
+        del self.widget_list
+        del self.kDownFunc
+        del self.kUpFunc
+        del self.collision_widget_list
+        del self.collision_list
+        del self.resize_event
+        del self.on_setActive
+
+    def CreateActor(self, t,p=0, args={}):
         """ Create actor in current scene
 
             Attributes:
@@ -269,11 +315,11 @@ class Scene(Widget):
                 top of regular actors
         """
         if issubclass(t, UI) :
-            a = type(t.__class__.__name__, (t,), {})(self,p)
+            a = type(t.__class__.__name__, (t,), {})(self,p,args)
             g = GroupInstructionQueue(p, a)
             self.__add_widget__(g)
         else :
-            a = type(t.__class__.__name__, (t,), {})(self,p+1000)
+            a = type(t.__class__.__name__, (t,), {})(self,p+1000,args)
             g = GroupInstructionQueue( p+1000, a )
             self.__add_widget__(g)
         return a
@@ -303,9 +349,10 @@ class Scene(Widget):
 class Actor(Widget):
     """ Abstraction of simple Actor Renderer class
     """
-    def __init__(self, scene, priority,update=False, animate=False, updateInt=30.0, animateInt=8.0, **kwargs):
+    def __init__(self, scene, priority, args, **kwargs):
         """ Actor constructor """
         super(Actor, self).__init__(**kwargs)
+        keys = args.keys()
         self.size = (0,0)
         self.frame_counter = 0
         self.collision = False
@@ -313,10 +360,10 @@ class Actor(Widget):
         self.sizeUnscaled = (25, 50)
         self.updateThread = None
         self.animateThread = None
-        self.doesAnimate = animate
-        self.doesUpdate = update
-        self.updateInterval = updateInt
-        self.animateInterval = animateInt
+        self.doesAnimate = args['doesAnimate'] if 'doesAnimate' in keys else False
+        self.doesUpdate = args['doesUpdate'] if 'doesUpdate' in keys else False
+        self.updateInterval = args['updateInterval'] if 'updateInterval' in keys else 30.0
+        self.animateInterval = args['animateInterval'] if 'animateInterval' in keys else 30.0
         self.pos = (0,0)
         self.frame_counter_offset = 0
         self.posUnscaled = (0,0)
@@ -326,7 +373,6 @@ class Actor(Widget):
         self.group = InstructionGroup()
         self.init = False
         self.__destroy__ = False
-        self.canvasSize = self.scene.size
         self.__resize__(self.canvasSize[0],self.canvasSize[1])
         self.count = 0
         self.touched = False
@@ -345,8 +391,6 @@ class Actor(Widget):
 
     def __pass_start__(self):
         """ End of start set up """
-        self.setPos(self.posUnscaled)
-        self.setSize(self.sizeUnscaled)
         self.init = True
         self.__set_intervals__(self.scene.isActive())
     
@@ -409,9 +453,10 @@ class Actor(Widget):
         """ called when clicked up """
         if self.collide_point(*touch.pos):
             self.touched = False
-            self.on_click_up(touch)
+            self.on_click_up(touch, True)
             return True
         self.touched = False
+        self.on_click_up(touch, False)
         return super(Actor, self).on_touch_up(touch)
 
     def on_touch_move(self, touch):
@@ -429,7 +474,7 @@ class Actor(Widget):
         """ *Virtual Function* Override on click move on self  """
         pass
 
-    def on_click_up(self, click):
+    def on_click_up(self, click, bHovered):
         """ *Virtual Function* Override on click down up  """
         pass
 
@@ -440,10 +485,11 @@ class Actor(Widget):
 
     def __main_render__(self):
         """ Main render loop calls virtual render function then passes instructions to main canvas """
-        self.group.clear()
-        if not self.__destroy__ and self.debug : self.__debug_render__()
-        if not self.__destroy__ : self.__render__()
-        self.__pass_render__()
+        if self.init:
+            self.group.clear()
+            if not self.__destroy__ and self.debug : self.__debug_render__()
+            if not self.__destroy__ : self.__render__()
+            self.__pass_render__()
 
     def __debug_render__(self):
         """ *Virtual Function* Override called before __render__ if debug = True  """
@@ -474,14 +520,15 @@ class Actor(Widget):
    
     def destroy(self):
         """ Called to destroy object """
+        self.__destroy__ = True
         if self.updateThread: Clock.unschedule(self.updateThread)
         if self.animateThread: Clock.unschedule(self.animateThread)
         self.scene.resize_event.remove(self.__resize__)
         self.scene.on_setActive.remove(self.__set_intervals__)
         self.__end__()
-        self.__destroy__ = True
         self.scene.__remove_widget__(self)
-        self.__on_resize__()
+        self.clear_widgets()
+        del self.scene
 
     def __resize__(self, x,y):
         """ Adjust actor size and positions based new canvas resize """
@@ -492,7 +539,6 @@ class Actor(Widget):
 
     def __on_resize__(self):
         """ Called when size of self or window changes """
-        #self.__main_render__()
         pass
 
     def __set_intervals__(self, b):
@@ -504,17 +550,18 @@ class Actor(Widget):
          """
         if not self.init: return
         if not b:
-            if self.doesUpdate and self.updateThread : 
-                Clock.unschedule(self.updateThread)
-                self.updateThread = None
             if self.doesAnimate and self.animateThread:
                 Clock.unschedule(self.animateThread)
                 self.animateThread = None
+            if self.doesUpdate and self.updateThread : 
+                Clock.unschedule(self.updateThread)
+                self.updateThread = None
+
         elif b:
-            if self.doesUpdate and self.updateThread is None:
-                self.updateThread = Clock.schedule_interval(self.__main_update__, 1.0/self.updateInterval)
             if self.doesAnimate and self.animateThread is None:
                 self.animateThread = Clock.schedule_interval(self.__main_animate__, 1/self.animateInterval)
+            if self.doesUpdate and self.updateThread is None:
+                self.updateThread = Clock.schedule_interval(self.__main_update__, 1.0/self.updateInterval)
 
     def setPos(self, p):
         """ Set object position
@@ -560,13 +607,12 @@ class Actor(Widget):
 
 class UI(Actor):
     """ Abstract class for creating UI """
-    def __init__(self, scene, priority, **kwargs):
+    def __init__(self, scene, priority, args,**kwargs):
         self.widget_draw = PriorityQueue()
         self.ui_widget = {}
-        super(UI, self).__init__(scene, priority,**kwargs)
+        super(UI, self).__init__(scene, priority, args,**kwargs)
 
     def __on_resize__(self):
-        #self.__main_render__()
         pass
         
     def __main_render__(self):
@@ -578,14 +624,19 @@ class UI(Actor):
         self.__update_widgets__()
         pass
 
+    def destroy(self):
+        super(UI,self).destroy()
+        del self.ui_widget
+        del self.widget_draw
+
     def on_touch_down(self, touch):
-        return super(Actor, self).on_touch_down(touch)
+        return super(UI, self).on_touch_down(touch)
 
     def on_touch_up(self, touch):
-        return super(Actor, self).on_touch_up(touch)
+        return super(UI, self).on_touch_up(touch)
 
     def on_touch_move(self, touch):
-        return super(Actor, self).on_touch_move(touch)
+        return super(UI, self).on_touch_move(touch)
 
     def __update_widgets__(self):
         """ update widgets called at the end of each render """
@@ -624,11 +675,10 @@ class UI(Actor):
             self.widget_draw.put(GroupInstructionQueue(priority, {'class':_type, 'kwargs': kwargs, 'name': name}))
         else:
             for k,v in kwargs.items():
-                setattr(self.ui_widget[name], k, v)
+                setattr(self.ui_widget[name], k, v) if k not in ['on_press'] else None
             del kwargs
 
-        
-        
+
 class GroupInstructionQueue(object):
     """ Helper class to add Group Instruction to priority queue """
     def __init__(self, priority, group):
@@ -639,6 +689,4 @@ class GroupInstructionQueue(object):
         return True if self.priority < other.priority else False
     def __lt__(self, other):
         return True if self.priority > other.priority else False
-
-
 
