@@ -9,18 +9,14 @@ from Game.Lemonade.Scripts.GameObjects import *
 from random import randrange
 
 class LemonadeGame(Game):
-
-
-
     def __init__(self,**kwargs):
         super(LemonadeGame, self).__init__(**kwargs)
-        self.x = 0
+        self.initGameVars()
         self.charList = []
-        self.spriteCount = 10
+        self.spriteCount = 7
         self.spriteLoadedCount = 0
         self.sprites = {}
         self.spritesLoaded = False
-        self.y = 0
         self.title = 'Lemonade'
         self.icon = 'Resources/Lemonade/icon/icon.ico'
         self.maxfps = 0
@@ -28,7 +24,15 @@ class LemonadeGame(Game):
         self.act = None
         self.sound = None
         self.sPlaying = False
+
+    def initGameVars(self):
+        self.day = 1
+        self.money = 5
        
+    def ResetGame(self, scene):
+        self.ChangeScene(scene, 'MainMenu')
+        self.initGameVars()
+
     def start(self):
         print('Starting...')
         self.sound = SoundLoader.load('Resources/Lemonade/music/main_song.mp3')
@@ -61,12 +65,6 @@ class LemonadeGame(Game):
         self.sprites['female1'] = AsyncImage(source='Resources/Lemonade/characters/female1.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['female1cup'] = AsyncImage(source='Resources/Lemonade/characters/female1cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         
-        #Load Background
-        self.sprites['cloud1'] = AsyncImage(source='Resources/Lemonade/main_menu/cloud1.png',on_load=self.spriteLoaded,anim_delay=-1)
-        self.sprites['beach1'] = AsyncImage(source='Resources/Lemonade/main_menu/beach1.png',on_load=self.spriteLoaded,anim_delay=-1)
-
-        #Load Objects
-        self.sprites['lemonade_stand1'] = AsyncImage(source='Resources/Lemonade/objects/lemonade_stand1.png',on_load=self.spriteLoaded,anim_delay=-1)
 
         #Load Effects
         self.sprites['dollarEffect'] = AsyncImage(source ='Resources/Lemonade/effects/dollar.png',on_load=self.spriteLoaded,anim_delay=-1)
@@ -130,7 +128,7 @@ class LemonadeGame(Game):
         scene.CreateActor(TitleBar, -1)
 
         #Create Start Button
-        scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.ChangeScene(scene, 'MainMenu')   ), 'textColor':(1,0,0,1),'size':(5,5)
+        scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.ResetGame(scene)   ), 'textColor':(1,0,0,1),'size':(5,5)
         ,'pos':(100-5,100-5), 'text':'Quit', 'textSize':2.5 } ) 
 
          #Create Start Button
@@ -177,16 +175,8 @@ class LemonadeGame(Game):
         pass
 
     def update(self, deltaTime):
-        self.x += 1
+        pass
 
-        #self.scene1.setCameraPos( (self.scene1.cameraPosUnscaled[0]+.05, 0) )
-
-        """if (self.x > 150 and self.x < 250):
-            if not self.bDraw : SceneManager.SetActive(self.scene2.name)
-            self.bDraw = True
-        elif self.bDraw is True:
-            self.bDraw = False
-            SceneManager.Destroy(self.scene2.name, self.scene1.name)"""
         
 
     def end(self):
