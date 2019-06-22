@@ -1,8 +1,9 @@
 from Core.Rendering.Primitives import *
 from Game.game import Game
+from Core.EntryPoint import Engine
+from Core.Rendering.Primitives import Scene
+from Core.Rendering.Primitives import SceneManager
 import numpy as np
-
-
 
 class Background(Actor):
     def __init__(self, scene,priority,args, **kwargs):
@@ -13,17 +14,10 @@ class Background(Actor):
         self.setSize( (100,100) )
         self.setPos( (0,0) )
 
-    def on_click_down(self, click):
-        pass
-
-    def on_click_move(self, click):
-        self.scene.setCameraPosScaled(click.pos)
-
     def __render__(self):
         self.group.add(Color(1,1,1,1))
         self.group.add(Rectangle(texture=self.back.texture,size=self.size,pos=self.pos))
         
-
 class Beach_Clouds_Moving(Actor):
     def __init__(self, scene, priority, args,**kwargs):
         self.clouds = Image(source='Resources/Lemonade/main_menu/cloud1.png')#Game.instance.sprites['cloud1']
@@ -77,12 +71,25 @@ class ShopBackground(Actor):
         self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
         super(ShopBackground, self).__init__(scene,priority,args,**kwargs)
         self.setSize( (50,80 ) )
-        self.setPos( (25, 10) )
+        self.setPos( (15, 10) )
 
     def __render__(self):
-        self.group.add(Color(.5,.8,1,.75))
+        self.group.add(Color(.5,.8,1,.85))
         self.group.add(Rectangle(texture=self.img.texture,size=self.size,
         pos=self.pos))
+
+class ShopInfoBackground(Actor):
+    def __init__(self, scene, priority, args, **kwargs):
+        self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
+        super(ShopInfoBackground, self).__init__(scene,priority,args,**kwargs)
+        self.setSize( (23,68 ) )
+        self.setPos( (76, 25) )
+
+    def __render__(self):
+        self.group.add(Color(.5,.8,1,.85))
+        self.group.add(Rectangle(texture=self.img.texture,size=self.size,
+        pos=self.pos))
+
 
 class LemonadeStand(Actor):
     def __init__(self, scene,priority,args, **kwargs):
@@ -117,8 +124,12 @@ class LemonadeStand(Actor):
 
 
 class WalkingMan(Actor):
+
+    alive = 0
+
     def __init__(self, scene,priority, args, **kwargs):
         super(WalkingMan,self).__init__(scene,priority, {'doesAnimate':True, 'doesUpdate':True, 'updateInterval':30,'animateInterval':30}, **kwargs)
+        WalkingMan.alive += 1
         self.char = args['char'] if 'char' in args.keys() else None
         self.img = Game.instance.sprites[self.char] if self.char else None 
         self.img1 = Game.instance.sprites["{}cup".format(self.char)] if self.char else None 
@@ -163,8 +174,8 @@ class WalkingMan(Actor):
             self._texcoords[7]]
             self.speed = -self.speed
 
-
     def __end__(self):
+        WalkingMan.alive += -1
         if self.char is not None and self.char not in Game.instance.charList:
             Game.instance.charList.append(self.char)
 
@@ -175,12 +186,25 @@ class WalkingMan(Actor):
 
     def on_collision_start(self,obj):
         if issubclass(obj.__class__, LemonadeStand):
-            self.soldPos = 0
-            if self.img:
-                tmp = self.img
-                self.img = self.img1
-                self.img1 = tmp
-            self.sold = True
+            if Game.instance.lemons > 0 and Game.instance.ice_cubes > 0 and Game.instance.sugar > 0 and Game.instance.cups > 0:
+                chance = .5
+                base_price = Game.instance.lemon_price+Game.instance.sugar_price+Game.instance.cup_price+Game.instance.ice_price
+                prce = Game.instance.sell_price
+
+
+                Game.instance.lemons -= 1
+                Game.instance.ice_cubes -= 1
+                Game.instance.sugar -= 1
+                Game.instance.cups -= 1
+                Game.instance.money += Game.instance.sell_price
+                self.soldPos = 0
+                if self.img:
+                    tmp = self.img
+                    self.img = self.img1
+                    self.img1 = tmp
+                self.sold = True
+
+           
         pass
         
     def on_collision_end(self,obj):
@@ -190,12 +214,6 @@ class WalkingMan(Actor):
         self.group.add(Color(1,0,0,.5))
         self.group.add(Rectangle(pos=self.pos,size=self.size))
         pass
-
-    def on_collision(self, obj):
-        pass
-
-    def on_click_move(self, click):
-        self.setPosScaled(click.pos)
 
     def __render__(self):
         """ *Virtual Function* Override to render custom objects to main canvas  """
@@ -222,7 +240,7 @@ class ActorPickUp(Actor):
         pass
             
     def __render__(self):
-        self.group.add(Color(1,0,0,0))
+        self.group.add(Color(1,0,0,1))
         self.group.add(Rectangle(pos=self.pos, size=self.size))
 
 class TitleBar(Actor):
