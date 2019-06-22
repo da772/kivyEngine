@@ -4,10 +4,10 @@ import numpy as np
 
 
 
-class Beach_Background1(Actor):
+class Background(Actor):
     def __init__(self, scene,priority,args, **kwargs):
-        self.beach = Image(source='Resources/Lemonade/main_menu/beach2.png')#Game.instance.sprites['beach1']
-        super(Beach_Background1,self).__init__(scene, priority,args,**kwargs)
+        self.back = Image(source=args['background']) if 'background' in args.keys() else  Image()
+        super(Background,self).__init__(scene, priority,args,**kwargs)
 
     def __start__(self):
         self.setSize( (100,100) )
@@ -21,7 +21,7 @@ class Beach_Background1(Actor):
 
     def __render__(self):
         self.group.add(Color(1,1,1,1))
-        self.group.add(Rectangle(texture=self.beach.texture,size=self.size,pos=self.pos))
+        self.group.add(Rectangle(texture=self.back.texture,size=self.size,pos=self.pos))
         
 
 class Beach_Clouds_Moving(Actor):
@@ -71,6 +71,18 @@ class Beach_Sea_Moving(Actor):
         self.group.add(Color(1,1,1,.85))
         self.group.add(Rectangle(texture=self.clouds.texture,size=self.size,pos=self.pos,tex_coords=self._texcoords))
 
+
+class ShopBackground(Actor):
+    def __init__(self, scene, priority, args, **kwargs):
+        self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
+        super(ShopBackground, self).__init__(scene,priority,args,**kwargs)
+        self.setSize( (50,80 ) )
+        self.setPos( (25, 10) )
+
+    def __render__(self):
+        self.group.add(Color(.5,.8,1,.75))
+        self.group.add(Rectangle(texture=self.img.texture,size=self.size,
+        pos=self.pos))
 
 class LemonadeStand(Actor):
     def __init__(self, scene,priority,args, **kwargs):
@@ -241,6 +253,41 @@ class FPS_Counter(UI):
         pass
 
 
+class GameText(UI):
+    def __init__(self, scene, priority, args, **kwargs):
+        self.img = args['image'] if 'image' in args else None
+        self.imagePos = args['imagePos'] if 'imagePos' in args else (0,0)
+        self.imgSize = args['imageSize'] if 'imageSize' in args else (5,5)
+        self.textSize = args['textSize'] if 'textSize' in args else 4.5
+        self.text = args['text'] if 'text' in args else 'Text'
+        self.textFormat = args['textFormat'] if 'textFormat' in args else '{}'
+        self.textColor = args['textColor'] if 'textColor' in args else (1,0,0,1)
+        self.font = args['font'] if 'font' in args else 'font/Lemonade.otf'
+        self.hAlign = args['hAlign'] if 'hAlign' in args else 'center'
+        self.valign = args['valign'] if 'valign' in args else 'middle'
+        super(GameText, self).__init__(scene,priority, args,**kwargs)
+        self.debug = args['debug'] if 'debug' in args else False
+        if 'pos' in args: self.setPos(args['pos'])
+        if 'size' in args: self.setSize(args['size'])
+
+    def __debug_render__(self):
+        self.create_widget('{}debug'.format((str(id(self)))), Button,size=self.size, pos=self.pos  )
+
+    def __render__(self):
+        if self.img: 
+            self.create_widget( '{}img'.format(str(id(self))) , Image, source=self.img, pos=self.calcRepos(self.imagePos), size=self.calcResize(self.imgSize))
+
+        frmt = []
+        for x in self.text: frmt.append(getattr(Game.instance, x,'ERR'))
+        fmrt = tuple(frmt)
+        self.create_widget( str(id(self)) , Label, text=self.textFormat.format(*frmt), pos=self.pos, size=self.size, 
+        text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
+        font_size=self.calcResize( (self.textSize, self.textSize), True),halign=self.hAlign, valign=self.valign,
+        color=self.textColor,font_name=self.font)
+        pass
+
+
+
 class MainMenu_Logo(UI):
     def __init__(self, scene,priority, args,**kwargs):
         self.textSize = 0
@@ -254,7 +301,7 @@ class MainMenu_Logo(UI):
         pass
 
     def __render__(self):
-        self.create_widget( 'Lemonade', Label, 0, color=(1,0,0,1), text='Lemonade Stand', pos=self.pos, size=self.size, 
+        self.create_widget( 'Lemonade', Label, 0, color=(1,0,0,1), text='MENU', pos=self.pos, size=self.size, 
                 text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
                 font_size=self.calcResize( (self.textSize, self.textSize), True), halign="center", valign="middle",
                 font_name='font/Lemonade.otf', 
