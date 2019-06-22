@@ -100,7 +100,7 @@ class SceneManager():
 def namestr(obj, namespace):
     return [name for name in namespace if namespace[name] is obj]
 
-""" Refactor kivy Primitives """
+""" Refactor kivy Base Objects """
 class Color(_Color):
     def __init___(self,**kwargs):
         super(Color, self).__init__(**kwargs)
@@ -136,7 +136,6 @@ class SoundLoader(_SoundLoader):
     def __init___(self,**kwargs):
         super(SoundLoader, self).__init__(**kwargs)
      
-
 class Scene(Widget):
     """ Contain display actors and ui acts as a Level for game
     

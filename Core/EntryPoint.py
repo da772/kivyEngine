@@ -3,9 +3,6 @@ from kivy.uix.widget import Widget
 from kivy.clock import Clock
 from kivy.config import Config
 
-from Core.Rendering.Primitives import Scene
-from Core.Rendering.Primitives import SceneManager
-
 from Core.Event.EventHandler import EventHandler
 from Core.Event.EventHandler import WindowEventHandler
 
@@ -23,24 +20,22 @@ class Engine(App):
 
     def __init__(self, game, **kwargs):
         Engine.instance = self
-        Config.set('graphics', 'maxfps', '0')
-        Config.set('graphics', 'width', '1280')
-        Config.set('graphics', 'height', '720')
-        Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-        Config.write()
         super(Engine, self).__init__(**kwargs)
         self.game = game
         self.title = game.title
         self.icon = game.icon
+        Config.set('graphics', 'maxfps', '0')
+        Config.set('graphics', 'width', game.width)
+        Config.set('graphics', 'height', game.height)
+        Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+        Config.write()
         self.run()
 
     def build(self):
         return Main(self.game)
 
 class Main(Widget):
-
     instance = None
-
     def __init__(self, game, **kwargs):
         super(Main, self).__init__(**kwargs)
         Main.instance = self

@@ -6,6 +6,8 @@ class Game(object):
         self.title = 'My Game'
         self.icon = ''
         self.maxfps = 0
+        self.width = 1280
+        self.height = 720
     def start(self):
         pass
     def update(self):

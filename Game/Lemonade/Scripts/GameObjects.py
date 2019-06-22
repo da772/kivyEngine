@@ -1,11 +1,11 @@
 from Core.Rendering.Primitives import *
 from Game.game import Game
-from Core.EntryPoint import Engine
 from Core.Rendering.Primitives import Scene
 from Core.Rendering.Primitives import SceneManager
-import numpy as np
 
 class Background(Actor):
+    """ Generic Background Actor
+    """
     def __init__(self, scene,priority,args, **kwargs):
         self.back = Image(source=args['background']) if 'background' in args.keys() else  Image()
         super(Background,self).__init__(scene, priority,args,**kwargs)
@@ -19,8 +19,10 @@ class Background(Actor):
         self.group.add(Rectangle(texture=self.back.texture,size=self.size,pos=self.pos))
         
 class Beach_Clouds_Moving(Actor):
+    """ Beach Moving Clouds Actor
+    """
     def __init__(self, scene, priority, args,**kwargs):
-        self.clouds = Image(source='Resources/Lemonade/main_menu/cloud1.png')#Game.instance.sprites['cloud1']
+        self.clouds = Image(source='Resources/Lemonade/main_menu/cloud1.png')
         self.clouds.texture.wrap = 'repeat'
         self._texcoords = self.clouds.texture.tex_coords
         super(Beach_Clouds_Moving,self).__init__(scene, priority,{'doesAnimate':True,'animateInterval':30},**kwargs)
@@ -42,8 +44,10 @@ class Beach_Clouds_Moving(Actor):
         self.group.add(Rectangle(texture=self.clouds.texture,size=self.size,pos=self.pos,tex_coords=self._texcoords))
 
 class Beach_Sea_Moving(Actor):
+    """ Beach Moving Sea Actor
+    """
     def __init__(self, scene, priority, args,**kwargs):
-        self.clouds = Image(source='Resources/Lemonade/main_menu/sea1.png')#Game.instance.sprites['cloud1']
+        self.clouds = Image(source='Resources/Lemonade/main_menu/sea1.png')
         self.clouds.texture.wrap = 'repeat'
         self._texcoords = self.clouds.texture.tex_coords
         super(Beach_Sea_Moving,self).__init__(scene, priority,{'doesAnimate':True,'animateInterval':30},**kwargs)
@@ -67,6 +71,8 @@ class Beach_Sea_Moving(Actor):
 
 
 class ShopBackground(Actor):
+    """ Item shop background Actor
+    """
     def __init__(self, scene, priority, args, **kwargs):
         self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
         super(ShopBackground, self).__init__(scene,priority,args,**kwargs)
@@ -79,6 +85,8 @@ class ShopBackground(Actor):
         pos=self.pos))
 
 class ShopInfoBackground(Actor):
+    """" Item Shop Info Background Actor 
+    """
     def __init__(self, scene, priority, args, **kwargs):
         self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
         super(ShopInfoBackground, self).__init__(scene,priority,args,**kwargs)
@@ -92,6 +100,8 @@ class ShopInfoBackground(Actor):
 
 
 class LemonadeStand(Actor):
+    """ Lemonade Stand Actor
+    """
     def __init__(self, scene,priority,args, **kwargs):
         self.img = Image(source='Resources/Lemonade/objects/lemonade_stand1.png')
         super(LemonadeStand, self).__init__(scene,priority, args, **kwargs )
@@ -124,9 +134,9 @@ class LemonadeStand(Actor):
 
 
 class WalkingMan(Actor):
-
+    """ Walking Sprite Actor 
+    """
     alive = 0
-
     def __init__(self, scene,priority, args, **kwargs):
         super(WalkingMan,self).__init__(scene,priority, {'doesAnimate':True, 'doesUpdate':True, 'updateInterval':30,'animateInterval':30}, **kwargs)
         WalkingMan.alive += 1
@@ -157,14 +167,14 @@ class WalkingMan(Actor):
         self._texcoords = self.img.texture.tex_coords
 
     def __update__(self, dt):
-        if not self.touched and self.img:
+        if self.img:
             self.setPos( ( self.posUnscaled[0] + self.speed  / 3.25 , self.posUnscaled[1]) )
             pass
         if self.sold:
             self.soldPos += .25
             if self.soldPos > 20:
                 self.sold = False
-        self.setSize(  ( float(np.abs(self.posUnscaled[1]-100)) /100 * self.sizeX, float(np.abs(self.posUnscaled[1]-100) )/100 * self.sizeY     )  ) 
+        self.setSize(  ( float(abs(self.posUnscaled[1]-100)) /100 * self.sizeX, float(abs(self.posUnscaled[1]-100) )/100 * self.sizeY     )  ) 
         pass
         
     def __change_dir__(self):
@@ -190,7 +200,10 @@ class WalkingMan(Actor):
                 chance = .5
                 base_price = Game.instance.lemon_price+Game.instance.sugar_price+Game.instance.cup_price+Game.instance.ice_price
                 prce = Game.instance.sell_price
+                weather = Game.instance.weather
+                #BUY LOGIC
 
+                    
 
                 Game.instance.lemons -= 1
                 Game.instance.ice_cubes -= 1
@@ -203,11 +216,6 @@ class WalkingMan(Actor):
                     self.img = self.img1
                     self.img1 = tmp
                 self.sold = True
-
-           
-        pass
-        
-    def on_collision_end(self,obj):
         pass
 
     def __debug_render__(self):
@@ -227,6 +235,8 @@ class WalkingMan(Actor):
         pass
 
 class ActorPickUp(Actor):
+    """ Actor Pickup Actor
+    """
     def __init__(self, scene,priority,args,**kwargs):
         self.on_collide_func = None
         super(ActorPickUp, self).__init__(scene,priority,args,**kwargs)
@@ -244,6 +254,8 @@ class ActorPickUp(Actor):
         self.group.add(Rectangle(pos=self.pos, size=self.size))
 
 class TitleBar(Actor):
+    """ Title Bar Actor
+    """
     def __init__(self, scene,priority, args, **kwargs):
         super(TitleBar, self).__init__(scene,priority,args, **kwargs)
     def __start__(self):
@@ -254,6 +266,8 @@ class TitleBar(Actor):
         self.group.add(Rectangle(pos= self.pos, size=self.size))
 
 class FPS_Counter(UI):
+    """ FPS_Counter UI
+    """
     def __init__(self, scene, priority,args, **kwargs):
         super(FPS_Counter, self).__init__(scene, priority, args,**kwargs)
 
@@ -272,6 +286,8 @@ class FPS_Counter(UI):
 
 
 class GameText(UI):
+    """ Generic Text UI
+    """
     def __init__(self, scene, priority, args, **kwargs):
         self.img = args['image'] if 'image' in args else None
         self.imagePos = args['imagePos'] if 'imagePos' in args else (0,0)
@@ -304,29 +320,9 @@ class GameText(UI):
         color=self.textColor,font_name=self.font)
         pass
 
-
-
-class MainMenu_Logo(UI):
-    def __init__(self, scene,priority, args,**kwargs):
-        self.textSize = 0
-        super(MainMenu_Logo, self).__init__(scene,priority,args,**kwargs)
-
-    def __start__(self):
-        self.debug= False
-        pass
-
-    def __debug_render__(self):
-        pass
-
-    def __render__(self):
-        self.create_widget( 'Lemonade', Label, 0, color=(1,0,0,1), text='MENU', pos=self.pos, size=self.size, 
-                text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
-                font_size=self.calcResize( (self.textSize, self.textSize), True), halign="center", valign="middle",
-                font_name='font/Lemonade.otf', 
-                )
-        pass
-
 class mButton(UI):
+    """Generic Button UI
+    """
     def __init__(self, scene,priority, args,**kwargs):
         self.textSize = args['textSize'] if 'textSize' in args else 4.5
         self.text = args['text'] if 'text' in args else 'Text'

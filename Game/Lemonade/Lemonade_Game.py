@@ -1,8 +1,11 @@
-from Game.Lemonade.Scripts.GameObjects import *
-
 import math
+import json
+from os import path
 from random import shuffle
 from random import randrange
+
+from Game.Lemonade.Scripts.GameObjects import *
+from Core.Event.EventHandler import WindowEventHandler
 
 class LemonadeGame(Game):
     def __init__(self,**kwargs):
@@ -11,6 +14,11 @@ class LemonadeGame(Game):
         self.maxfps = 0
         self.title = 'Lemonade'
         self.icon = 'Resources/Lemonade/icon/leonicon.ico'
+        self.WindowSettings()
+        Window.size = (self.width,self.height)
+        #Setup Window Callbacks
+        WindowEventHandler.window_resize_callback.append(self.onResize)
+        #Setup Audio
         self.sound = None
         self.sPlaying = False
         #Setup Sprites
@@ -27,7 +35,10 @@ class LemonadeGame(Game):
     #Initialize game variables
     def initGameVars(self):
         self.day = 0
-        self.money = 40.00
+        self.maxDays = 7
+        self.starting_money = 40.00
+        self.profit = -self.starting_money 
+        self.money = self.starting_money
         self.cups = 0
         self.lemons = 0
         self.ice_cubes = 0
@@ -38,11 +49,15 @@ class LemonadeGame(Game):
 
     #Initialize new day
     def initDay(self):
+        self.day += 1
+        self.profit = math.floor((self.money - self.starting_money) * 100)/100.0
+        if self.day > self.maxDays:
+            self.GameOver(SceneManager.Get('DayStart'))
+            return
         shuffle(self.charList)
         self.tickCounter = 0
-        self.day += 1
         self.weather = randrange(60,100)
-        self.total_people = randrange(50,60) if self.weather < 70 else randrange(60,70) if self.weather < 80 else randrange(70,80) if self.weather < 90 else randrange(80,90)
+        self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(250,300)
         self.peoplepertick = math.floor(3600/self.total_people)
         self.lemon_price = randrange(10,25)/100
         self.sugar_price = randrange(10,15)/100
@@ -58,9 +73,37 @@ class LemonadeGame(Game):
         self.cart_total = 0.00
 
     #Reset Game
-    def ResetGame(self, scene):
+    def ResetGame(self, scene, b=True):
+        self.SaveGame(b)
         self.ChangeScene(scene, 'MainMenu')
         self.initGameVars()
+
+    #Game Over
+    def GameOver(self, scene):
+        self.ChangeScene(scene, 'GameOver')
+
+    #Continue Game
+    def ContinueGame(self):
+        bLoaded = False
+        try :
+            with open('save.json') as settings:
+                data = json.load(settings)
+                data = data['game']
+                self.day = data['day']
+                self.money = data['money']
+                self.cups = data['cups']
+                self.lemons = data['lemons']
+                self.ice_cubes = data['ice_cubes']
+                self.sugar = data['sugar']
+                self.sell_price = data['sell_price']
+                bLoaded= True
+        except:
+            print('Could not load game save.')
+        if bLoaded:
+            self.initDay()
+            self.initCart()
+            if not SceneManager.Get('GameOver') or not SceneManager.Get('GameOver').isActive():
+                self.CreateDayManager()
 
     #Game Started
     def start(self):
@@ -81,6 +124,7 @@ class LemonadeGame(Game):
             self.sPlaying = False
             self.sound.stop()
 
+    #Load Sprites in background
     def loadSprites(self):
 
         #Add Characters to array
@@ -105,15 +149,24 @@ class LemonadeGame(Game):
             print('All sprites loaded')
             self.spritesLoaded = True
 
+    #On Window Resize Event
+    def onResize(self, window, w, h):
+        self.width = w
+        self.height = h
+        pass
+
     #Create the main menu
     def CreateMainMenu(self):
         #Create Scene
         scene = SceneManager.Create('MainMenu', True)
+        self.CreateGameOver()
         #Setup keyboard Callback
 
         #Create Start Button
         scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.CreateDayManager()), 'textColor':(0,0,0,1),'size':(15,12)
-        ,'pos':(42,30), 'text':'Start','button_normal':'Resources/Lemonade/objects/paper1.png' } ) 
+        ,'pos':(42,43), 'text':'Start','button_normal':'Resources/Lemonade/objects/paper1.png' } ) 
+        scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.ContinueGame()), 'textColor':(0,0,0,1),'size':(15,12)
+        ,'pos':(42,30), 'text':'Continue?','button_normal':'Resources/Lemonade/objects/paper1.png' } ) 
         scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.playSong(not self.sPlaying)), 'textColor':(0,0,0,1),'size':(15,12)
         ,'pos':(42,17), 'text':'Mute Sound','button_normal':'Resources/Lemonade/objects/paper1.png' } ) 
         scene.CreateActor(mButton, 0, {'onPress' : (lambda : Engine.instance.stop() ), 'textColor':(0,0,0,1),'size':(15,12)
@@ -133,16 +186,25 @@ class LemonadeGame(Game):
         scene.CreateActor(FPS_Counter, -1)
         return scene
 
+    #Create Game Over Scene
+    def CreateGameOver(self):
+        scene = SceneManager.Create('GameOver', False) 
+        scene.CreateActor(Background,99, {'background':'Resources/Lemonade/main_menu/beach1.png'})
+        scene.CreateActor(GameText, -1, {'textColor':(0,0,0,1),'size':(100,10), 'hAlign':'center',
+        'pos':(0,60), 'textFormat':'Game Over!','textSize':10 , 'debug':False, 'font':'font/SugarLemonade.ttf'} ) 
+        scene.CreateActor(GameText, -1, {'textColor':(0,0,0,1),'size':(100,10), 'hAlign':'center',
+        'pos':(0,50), 'textFormat':'You made a profit of: ${0:.2f}', 'text':['profit'],'textSize':10 , 'debug':False, 'font':'font/SugarLemonade.ttf'} ) 
+        scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.ResetGame(scene, False)), 'textColor':(0,0,0,1),'size':(15,12)
+        ,'pos':(42,30), 'text':'Continue?','button_normal':'Resources/Lemonade/objects/paper1.png' } ) 
+        pass
+
+    #Create Day Manager Scene
     def CreateDayManager(self):
         if SceneManager.Get('DayManager') is None:
             scene = SceneManager.Create('DayManager', True) 
         else:
             SceneManager.SetActive('DayManager')
             return
-
-        scene.setKeyboardPressUpCallback(self.on_key_up)
-        scene.setKeyboardPressDownCallback(self.on_key_down)
-    
         #Create Titlebar
         self.CreateTitleBar(scene)
 
@@ -308,8 +370,8 @@ class LemonadeGame(Game):
         'pos':(23,100-5), 'textFormat':'{}', 'text':['sugar'],'textSize':3.5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} ) 
         scene.CreateActor(GameText, -1, {'textColor':(1,1,1,1),'size':(5,5), 'hAlign':'center',
         'pos':(50-5,100-5), 'textFormat':'Day {}', 'text':['day'],'textSize':3.5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} ) 
-        scene.CreateActor(GameText, -1, {'textColor':(1,1,1,1),'size':(5,5), 'hAlign':'center',
-        'pos':(100-15,100-5), 'textFormat':'{}°F', 'text':['weather'],'textSize':3.5 , 'debug':False, 'font':'font/LucidaSansUnicode.ttf'} ) 
+        scene.CreateActor(GameText, -1, {'textColor':(1,1,1,1),'size':(6,5), 'hAlign':'center',
+        'pos':(100-16,100-5), 'textFormat':'{}°F', 'text':['weather'],'textSize':3.5 , 'debug':False, 'font':'font/LucidaSansUnicode.ttf'} ) 
 
     #Create the day start scene
     def CreateDayStart(self):
@@ -346,18 +408,10 @@ class LemonadeGame(Game):
         #Create FPS Counter
         scene.CreateActor(FPS_Counter, -1)
 
+    #Change current scene
     def ChangeScene(self, scene, new):
-        if scene.name is 'DayStart' : scene.Clear()
+        if scene and scene.name is 'DayStart' : scene.Clear()
         SceneManager.SetActive( new )
-
-
-    def on_key_up(self, a,b,*c):
-        pass
-
-    def on_key_down(self, a, b,c,d):
-        if c == 'y':
-            self.lemons += 1
-        pass
 
     #Spawning Characters Logic
     def update(self, deltaTime):
@@ -369,15 +423,15 @@ class LemonadeGame(Game):
             if self.total_people <= 0 and WalkingMan.alive <= 0:
                 self.dayStart = False
                 self.tickCounter = 0
-                self.initDay()
                 self.ChangeScene(scene, 'DayManager')
+                self.initDay()
                 pass
-            #if we still havep people to spawn and it is time to spawn them
+            #if we still have people to spawn and it is time to spawn them
             if self.total_people > 0 and self.tickCounter <= 3600 and self.tickCounter % self.peoplepertick is 0:
                 self.total_people -= 1
                 p = self.total_people % len(self.charList)#randrange(0,len(self.charList))
                 _p = randrange(0,2)
-                pos = ( -15 if _p is 0 else 115, randrange(0, 20, 1))
+                pos = ( -15 if _p is 0 else 115, randrange(0, 20, 1)+self.total_people/1000)
                 speed = randrange(1, 2) + randrange(1,100)/100
                 act = scene.CreateActor(WalkingMan, pos[1], { 'char':self.charList[p] })
                 act.speed = speed
@@ -386,7 +440,49 @@ class LemonadeGame(Game):
                 act.setPos(pos)
         pass
 
+    #Save Game if not over or on main menu
+    def SaveGame(self, b=True):
+        if b:
+            if (SceneManager.Get('MainMenu') is not None and not SceneManager.Get('MainMenu').isActive()) and (SceneManager.Get('GameOver') is not None and not SceneManager.Get('GameOver').isActive()):
+                data = {}
+                data['game'] = { 'day':self.day,'money':self.money,'cups':self.cups,'lemons':self.lemons,'ice_cubes':self.ice_cubes,
+                'sugar':self.sugar,'sell_price':self.sell_price }
+                with open('save.json', 'w') as out:
+                    json.dump(data, out)
+            else:
+                with open('save.json', 'w') as out:
+                    json.dump('{}', out)
+        else:
+            with open('save.json', 'w') as out:
+                json.dump('{}', out)
+        pass
+
+    #Save Window Size
+    def SaveWindowSize(self):
+        data = {}
+        data['size'] = {'width':self.width,'height':self.height}
+        with open('settings.json', 'w') as out:
+            json.dump(data, out)
+        pass
+
+    #Set Window Size
+    def WindowSettings(self):
+        w = 1280
+        h = 720
+        try :
+            with open('settings.json') as settings:
+                data = json.load(settings)
+                w = int(data['size']['width'])
+                h = int(data['size']['height'])
+        except:
+            print('Could not load user settings.')
+        self.width = w
+        self.height = h
+
     #Game Over
     def end(self):
+        WindowEventHandler.window_resize_callback.remove(self.onResize)
+        self.SaveWindowSize()
+        self.SaveGame()
         print('Ending...')
         pass
