@@ -136,12 +136,12 @@ class LemonadeStand(Actor):
 class StandingChar(Actor):
     def __init__(self, scene,priority, args, **kwargs):
         super(StandingChar, self).__init__(scene,priority, {'doesAnimate':True, 'animateInterval':30}, **kwargs)
-        self.img = Game.instance.sprites['man1']
+        self.img = Game.instance.sprites['player']
         self.debug = args['debug'] if 'debug' in args.keys() else False
         self._texcoords = self.img.texture.tex_coords 
         self._texture = self.img.GetFrames()[0]  if self.img else None
         self.__change_dir__()
-        self.frame_counter_offset = 1
+        self.frame_counter_offset = 29
         self.sizeX = 15
         self.sizeY = 60
         if 'pos' in args: self.setPos(args['pos'])

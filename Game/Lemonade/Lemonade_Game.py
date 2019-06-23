@@ -23,7 +23,7 @@ class LemonadeGame(Game):
         self.sPlaying = False
         #Setup Sprites
         self.charList = []
-        self.spriteCount = 8
+        self.spriteCount = 10
         self.spriteLoadedCount = 0
         self.sprites = {}
         self.spritesLoaded = False
@@ -139,6 +139,7 @@ class LemonadeGame(Game):
         self.charList = ['man1', 'man2', 'man3','female1']
 
         #Load Character Animations
+        self.sprites['player'] = AsyncImage(source='Resources/Lemonade/characters/player.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man1'] = AsyncImage(source='Resources/Lemonade/characters/man1.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man1cup'] = AsyncImage(source='Resources/Lemonade/characters/man1cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man2'] = AsyncImage(source='Resources/Lemonade/characters/man2.zip',on_load=self.spriteLoaded,anim_delay=-1)
@@ -417,7 +418,7 @@ class LemonadeGame(Game):
         #Create Lemonade stand
         stand = scene.CreateActor(LemonadeStand, 95)
         #Create Player
-        player = scene.CreateActor(StandingChar, 96,{'pos':(44,21), 'debug':True})
+        player = scene.CreateActor(StandingChar, 96,{'pos':(44,21), 'debug':False})
         #Set stand collision size
         stand.setSize( (10,60) )
         #Set stand sprite size/position
