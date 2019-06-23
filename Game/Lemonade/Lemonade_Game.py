@@ -23,7 +23,7 @@ class LemonadeGame(Game):
         self.sPlaying = False
         #Setup Sprites
         self.charList = []
-        self.spriteCount = 7
+        self.spriteCount = 8
         self.spriteLoadedCount = 0
         self.sprites = {}
         self.spritesLoaded = False
@@ -58,7 +58,8 @@ class LemonadeGame(Game):
         self.tickCounter = 0
         self.weather = randrange(60,100)
         self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(250,300)
-        self.peoplepertick = math.floor(3600/self.total_people)
+        self.peoplepertick = math.floor(5400/self.total_people)
+        print('ppt: {} ppl:{}'.format(self.peoplepertick, self.total_people))
         self.lemon_price = randrange(10,25)/100
         self.sugar_price = randrange(10,15)/100
         self.cup_price = randrange(10,15)/100
@@ -128,13 +129,15 @@ class LemonadeGame(Game):
     def loadSprites(self):
 
         #Add Characters to array
-        self.charList = ['man1', 'man2', 'female1']
+        self.charList = ['man1', 'man2', 'man3','female1']
 
         #Load Character Animations
         self.sprites['man1'] = AsyncImage(source='Resources/Lemonade/characters/man1.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man1cup'] = AsyncImage(source='Resources/Lemonade/characters/man1cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man2'] = AsyncImage(source='Resources/Lemonade/characters/man2.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man2cup'] = AsyncImage(source='Resources/Lemonade/characters/man2cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['man3'] = AsyncImage(source='Resources/Lemonade/characters/man3.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['man3cup'] = AsyncImage(source='Resources/Lemonade/characters/man3cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['female1'] = AsyncImage(source='Resources/Lemonade/characters/female1.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['female1cup'] = AsyncImage(source='Resources/Lemonade/characters/female1cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         
@@ -425,7 +428,7 @@ class LemonadeGame(Game):
                 self.tickCounter = 0
                 self.ChangeScene(scene, 'DayManager')
                 self.initDay()
-                pass
+                return
             #if we still have people to spawn and it is time to spawn them
             if self.total_people > 0 and self.tickCounter <= 3600 and self.tickCounter % self.peoplepertick is 0:
                 self.total_people -= 1
@@ -435,8 +438,7 @@ class LemonadeGame(Game):
                 speed = randrange(1, 2) + randrange(1,100)/100
                 act = scene.CreateActor(WalkingMan, pos[1], { 'char':self.charList[p] })
                 act.speed = speed
-                if _p is 1:
-                    act.__change_dir__()
+                if _p is 1: act.__change_dir__()
                 act.setPos(pos)
         pass
 
