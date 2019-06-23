@@ -2,6 +2,7 @@ from Core.Rendering.Primitives import *
 from Game.game import Game
 from Core.Rendering.Primitives import Scene
 from Core.Rendering.Primitives import SceneManager
+from random import randrange
 
 class Background(Actor):
     """ Generic Background Actor
@@ -77,7 +78,7 @@ class ShopBackground(Actor):
         self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
         super(ShopBackground, self).__init__(scene,priority,args,**kwargs)
         self.setSize( (50,80 ) )
-        self.setPos( (15, 10) )
+        self.setPos( (5, 10) )
 
     def __render__(self):
         self.group.add(Color(.5,.8,1,.85))
@@ -90,8 +91,8 @@ class ShopInfoBackground(Actor):
     def __init__(self, scene, priority, args, **kwargs):
         self.img = Image(source='Resources/Lemonade/objects/shop-background.png')
         super(ShopInfoBackground, self).__init__(scene,priority,args,**kwargs)
-        self.setSize( (23,68 ) )
-        self.setPos( (76, 25) )
+        if 'pos' in args: self.setPos(args['pos'])
+        if 'size' in args: self.setSize(args['size'])
 
     def __render__(self):
         self.group.add(Color(.5,.8,1,.85))
@@ -132,14 +133,47 @@ class LemonadeStand(Actor):
         self.group.add(Color(1,1,1,1))
         self.group.add(Rectangle(texture=self.img.texture,size=self.calcResize( (self.xSize, self.ySize) ),pos=self.calcRepos( ( self.posUnscaled[0] - self.xP[0],self.posUnscaled[1]-self.xP[1]) )))
 
+class StandingChar(Actor):
+    def __init__(self, scene,priority, args, **kwargs):
+        super(StandingChar, self).__init__(scene,priority, {'doesAnimate':True, 'animateInterval':30}, **kwargs)
+        self.img = Game.instance.sprites['man1']
+        self.debug = args['debug'] if 'debug' in args.keys() else False
+        self._texcoords = self.img.texture.tex_coords 
+        self._texture = self.img.GetFrames()[0]  if self.img else None
+        self.__change_dir__()
+        self.frame_counter_offset = 1
+        self.sizeX = 15
+        self.sizeY = 60
+        if 'pos' in args: self.setPos(args['pos'])
+        if 'size' in args: self.setSize(args['size'])
+        self.setSize(  ( float(abs(self.posUnscaled[1]-100)) /100 * self.sizeX, float(abs(self.posUnscaled[1]-100) )/100 * self.sizeY     )  ) 
 
-class WalkingMan(Actor):
+    def __change_dir__(self):
+        if self._texcoords is not None:
+            self._texcoords = [ 0 if self._texcoords[0] > 0 else 1, self._texcoords[1], 0 if self._texcoords[2] > 0 else 1,
+            self._texcoords[3], 0 if self._texcoords[4] > 0 else 1, self._texcoords[5], 0 if self._texcoords[6] > 0 else 1,
+            self._texcoords[7]]
+
+    def __animate__(self,dt):
+        self._texture = self.img.GetFrames()[self.frame_counter]  if self.img else None
+
+    def __debug_render__(self):
+        self.group.add(Color(1,0,0,.5))
+        self.group.add(Rectangle(pos=self.pos,size=self.size))
+
+    def __render__(self):
+        """ *Virtual Function* Override to render custom objects to main canvas  """
+        self.group.add(Color(1,1,1,1))
+        self.group.add(Rectangle(texture=self._texture,pos= self.pos, size=self.size, tex_coords=self._texcoords))
+        pass
+
+class WalkingChar(Actor):
     """ Walking Sprite Actor 
     """
     alive = 0
     def __init__(self, scene,priority, args, **kwargs):
-        super(WalkingMan,self).__init__(scene,priority, {'doesAnimate':True, 'doesUpdate':True, 'updateInterval':30,'animateInterval':30}, **kwargs)
-        WalkingMan.alive += 1
+        super(WalkingChar,self).__init__(scene,priority, {'doesAnimate':True, 'doesUpdate':True, 'updateInterval':30,'animateInterval':30}, **kwargs)
+        WalkingChar.alive += 1
         self.char = args['char'] if 'char' in args.keys() else None
         self.img = Game.instance.sprites[self.char] if self.char else None 
         self.img1 = Game.instance.sprites["{}cup".format(self.char)] if self.char else None 
@@ -154,6 +188,16 @@ class WalkingMan(Actor):
         self.soldPos = 0
         self.speed = 1.5
         self.frame_counter_offset = 1
+
+    @staticmethod
+    def CalculateChance():
+        chance = 0
+        base_price = Game.instance.lemon_price+Game.instance.sugar_price+Game.instance.cup_price+Game.instance.ice_price
+        prce = Game.instance.sell_price
+        weather = Game.instance.weather
+        chance += base_price/(prce) if prce < (base_price*2.5) else base_price / (prce*1.75) if prce < (base_price*3.5) else base_price / (prce*2.5)
+        chance += (weather/100)/3
+        return chance if chance <= 1 else 1.0
 
     def __start__(self):
         self.debug = False
@@ -185,7 +229,7 @@ class WalkingMan(Actor):
             self.speed = -self.speed
 
     def __end__(self):
-        WalkingMan.alive += -1
+        WalkingChar.alive += -1
         if self.char is not None and self.char not in Game.instance.charList:
             Game.instance.charList.append(self.char)
 
@@ -197,25 +241,22 @@ class WalkingMan(Actor):
     def on_collision_start(self,obj):
         if issubclass(obj.__class__, LemonadeStand):
             if Game.instance.lemons > 0 and Game.instance.ice_cubes > 0 and Game.instance.sugar > 0 and Game.instance.cups > 0:
-                chance = .5
-                base_price = Game.instance.lemon_price+Game.instance.sugar_price+Game.instance.cup_price+Game.instance.ice_price
-                prce = Game.instance.sell_price
-                weather = Game.instance.weather
+                chance = WalkingChar.CalculateChance()
                 #BUY LOGIC
-
-                    
-
-                Game.instance.lemons -= 1
-                Game.instance.ice_cubes -= 1
-                Game.instance.sugar -= 1
-                Game.instance.cups -= 1
-                Game.instance.money += Game.instance.sell_price
-                self.soldPos = 0
-                if self.img:
-                    tmp = self.img
-                    self.img = self.img1
-                    self.img1 = tmp
-                self.sold = True
+                if randrange(0,100) <= chance*100:
+                    Game.instance.lemons -= 1
+                    Game.instance.ice_cubes -= 1
+                    Game.instance.sugar -= 1
+                    Game.instance.cups -= 1
+                    Game.instance.money += Game.instance.sell_price
+                    Game.instance.daily_earnings += Game.instance.sell_price
+                    Game.instance.daily_cups += 1
+                    self.soldPos = 0
+                    if self.img:
+                        tmp = self.img
+                        self.img = self.img1
+                        self.img1 = tmp
+                    self.sold = True
         pass
 
     def __debug_render__(self):
@@ -316,7 +357,7 @@ class GameText(UI):
         fmrt = tuple(frmt)
         self.create_widget( str(id(self)) , Label, text=self.textFormat.format(*frmt), pos=self.pos, size=self.size, 
         text_size=( (self.size[0] - self.calcResize( (.5,.5) )[0], self.size[1] - self.calcResize((.5,.5))[1] ) ) ,
-        font_size=self.calcResize( (self.textSize, self.textSize), True),halign=self.hAlign, valign=self.valign,
+        font_size=self.calcResize( (self.textSize, self.textSize), True),halign=self.hAlign, valign=self.valign,markup=True,
         color=self.textColor,font_name=self.font)
         pass
 
