@@ -1,5 +1,5 @@
 from Core.Rendering.Primitives import *
-from Game.game import Game
+from Core.EntryPoint import Game
 from Core.Rendering.Primitives import Scene
 from Core.Rendering.Primitives import SceneManager
 from random import randrange
@@ -402,9 +402,3 @@ class mButton(UI):
     def OnPressCallback(self, instance=None, value=0):
         if self.onPress:
             self.onPress()
-    
-
-
-
-
-        

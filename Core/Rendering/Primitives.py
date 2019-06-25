@@ -97,9 +97,6 @@ class SceneManager():
             gc.collect()
             return SceneManager.SceneDict[newScene]
 
-def namestr(obj, namespace):
-    return [name for name in namespace if namespace[name] is obj]
-
 """ Refactor kivy Base Objects """
 class Color(_Color):
     def __init___(self,**kwargs):

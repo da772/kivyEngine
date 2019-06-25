@@ -58,7 +58,7 @@ class LemonadeGame(Game):
             self.GameOver(SceneManager.Get('DayStart'))
             return
         shuffle(self.charList)
-        self.tickTotal = 60*90
+        self.tickTotal = 60*30
         self.tickCounter = 0
         self.weather = randrange(60,100)
         self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(250,300)
