@@ -3,7 +3,7 @@ import json
 from os import path
 from random import shuffle
 
-
+from Core.EntryPoint import Engine
 from Game.Lemonade.Scripts.GameObjects import *
 from Core.Event.EventHandler import WindowEventHandler
 
