@@ -315,22 +315,22 @@ class LemonadeGame(Game):
         #Price
         scene.CreateActor(ShopInfoBackground, 1,{'size':(40,39),'pos':(57,11)})
         #Set Price #008000 Green
-        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(23,10), 'hAlign':'center',
-        'pos':(65,40), 'textFormat':'Expected Customers: [color=0000FF]{}[/color]', 'text':['total_people'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
-        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(23,10), 'hAlign':'center',
-        'pos':(65,35),'textFormat':'Profit per Cup: [color=0000FF]${0:.2f}[/color]', 'text':['sell_profit'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
-        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(23,10), 'hAlign':'center',
-        'pos':(65,30), 'textFormat':'Chance to Sell: [color=0000FF]%{0:.2f}[/color]', 'text':['sell_chance'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
-        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(23,10), 'hAlign':'center',
-        'pos':(65,24), 'textFormat':'Price:\n[color=0000FF]${0:.2f}[/color]', 'text':['sell_price'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
+        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(38,10), 'hAlign':'center',
+        'pos':(58,40), 'textFormat':'Expected Customers: [color=0000FF]{}[/color]', 'text':['total_people'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
+        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(38,10), 'hAlign':'center',
+        'pos':(58,35),'textFormat':'Profit per Cup: [color=0000FF]${0:.2f}[/color]', 'text':['sell_profit'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
+        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(38,10), 'hAlign':'center',
+        'pos':(58,30), 'textFormat':'Chance to Sell: [color=0000FF]%{0:.2f}[/color]', 'text':['sell_chance'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
+        scene.CreateActor(GameText, 0, {'textColor':(0,0,0,1),'size':(38,10), 'hAlign':'center',
+        'pos':(57,24), 'textFormat':'Price:\n[color=0000FF]${0:.2f}[/color]', 'text':['sell_price'],'textSize':5 , 'debug':False, 'font':'font/SugarLemonade.ttf'} )
         scene.CreateActor(mButton, -1, {'onPress' : (lambda : self.AddSellPrice(-.01)), 'textColor':(1,0,0,1),'size':(4,4)
-        ,'pos':(69.5,28), 'text':'-1c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
+        ,'pos':(69,28), 'text':'-1c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
         scene.CreateActor(mButton, -1, {'onPress' : (lambda : self.AddSellPrice(-.05)), 'textColor':(1,0,0,1),'size':(4,4)
-        ,'pos':(65.35,28), 'text':'-5c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
+        ,'pos':(64.35,28), 'text':'-5c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
         scene.CreateActor(mButton, -1, {'onPress' : (lambda : self.AddSellPrice(.05)), 'textColor':(0,1,0,1),'size':(4,4)
-        ,'pos':(83.75,28), 'text':'+5c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
+        ,'pos':(85,28), 'text':'+5c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
         scene.CreateActor(mButton, -1, {'onPress' : (lambda : self.AddSellPrice(.01)), 'textColor':(0,1,0,1),'size':(4,4)
-        ,'pos':(79.5,28), 'text':'+1c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
+        ,'pos':(80,28), 'text':'+1c','button_normal':'Resources/Lemonade/objects/paper1.png','font':'font/SugarLemonade.ttf' } ) 
 
         #Create Start Button
         scene.CreateActor(mButton, 0, {'onPress' : (lambda : self.CreateDayStart()), 'textColor':(0,0,0,1),'size':(15,12)
