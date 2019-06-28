@@ -1,6 +1,6 @@
 # kivyEngine
 
-2D Rendering Framework
+Python 2D Rendering Framework
 - [Kivy](https://kivy.org/)
 
 
