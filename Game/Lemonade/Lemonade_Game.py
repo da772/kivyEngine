@@ -23,7 +23,7 @@ class LemonadeGame(Game):
         self.sPlaying = False
         #Setup Sprites
         self.charList = []
-        self.spriteCount = 10
+        self.spriteCount = 16
         self.spriteLoadedCount = 0
         self.sprites = {}
         self.spritesLoaded = False
@@ -58,7 +58,7 @@ class LemonadeGame(Game):
             self.GameOver(SceneManager.Get('DayStart'))
             return
         shuffle(self.charList)
-        self.tickTotal = 60*30
+        self.tickTotal = 60*45
         self.tickCounter = 0
         self.weather = randrange(60,100)
         self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(250,300)
@@ -136,7 +136,7 @@ class LemonadeGame(Game):
     def loadSprites(self):
 
         #Add Characters to array
-        self.charList = ['man1', 'man2', 'man3','female1']
+        self.charList = ['man1', 'man2', 'man3', 'man4','female1', 'female2','female3']
 
         #Load Character Animations
         self.sprites['player'] = AsyncImage(source='Resources/Lemonade/characters/player.zip',on_load=self.spriteLoaded,anim_delay=-1)
@@ -146,8 +146,14 @@ class LemonadeGame(Game):
         self.sprites['man2cup'] = AsyncImage(source='Resources/Lemonade/characters/man2cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man3'] = AsyncImage(source='Resources/Lemonade/characters/man3.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['man3cup'] = AsyncImage(source='Resources/Lemonade/characters/man3cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['man4'] = AsyncImage(source='Resources/Lemonade/characters/man4.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['man4cup'] = AsyncImage(source='Resources/Lemonade/characters/man4cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['female1'] = AsyncImage(source='Resources/Lemonade/characters/female1.zip',on_load=self.spriteLoaded,anim_delay=-1)
         self.sprites['female1cup'] = AsyncImage(source='Resources/Lemonade/characters/female1cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['female2'] = AsyncImage(source='Resources/Lemonade/characters/female2.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['female2cup'] = AsyncImage(source='Resources/Lemonade/characters/female2cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['female3'] = AsyncImage(source='Resources/Lemonade/characters/female3.zip',on_load=self.spriteLoaded,anim_delay=-1)
+        self.sprites['female3cup'] = AsyncImage(source='Resources/Lemonade/characters/female3cup.zip',on_load=self.spriteLoaded,anim_delay=-1)
         
         #Load Effects
         self.sprites['dollarEffect'] = AsyncImage(source ='Resources/Lemonade/effects/dollar.png',on_load=self.spriteLoaded,anim_delay=-1)
