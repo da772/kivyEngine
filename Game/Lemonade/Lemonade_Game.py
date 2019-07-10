@@ -61,7 +61,7 @@ class LemonadeGame(Game):
         self.tickTotal = 60*45
         self.tickCounter = 0
         self.weather = randrange(60,100)
-        self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(250,300)
+        self.total_people = randrange(90,100) if self.weather < 70 else randrange(130,150) if self.weather < 80 else randrange(200,225) if self.weather < 90 else randrange(200,150)
         self.peoplepertick = math.floor(self.tickTotal/self.total_people)
         self.lemon_price = randrange(10,25)/100
         self.sugar_price = randrange(10,15)/100
