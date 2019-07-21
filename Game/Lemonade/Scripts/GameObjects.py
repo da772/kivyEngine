@@ -1,5 +1,5 @@
 from Core.Rendering.Primitives import *
-from Lemonade import Lemonade_Game as Game
+from Core.EntryPoint import Game
 from Core.Rendering.Primitives import Scene
 from Core.Rendering.Primitives import SceneManager
 from random import randrange
@@ -287,6 +287,7 @@ class ActorPickUp(Actor):
         self.__set_collision__(True)
 
     def __on_collision_start__(self, obj):
+        if self.on_collide_func : self.on_collide_func(obj)
         pass
             
     def __render__(self):
